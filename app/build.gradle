@@ -72,6 +72,11 @@ android {
         warning 'InvalidPackage', 'MissingTranslation'
     }
     buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+            resValue 'string', 'app_provider_authority', 'me.zhanghai.android.files.debug.app_provider'
+            resValue 'string', 'file_provider_authority', 'me.zhanghai.android.files.debug.file_provider'
+                }
         release {
             minifyEnabled true
             shrinkResources true
