@@ -97,4 +97,8 @@
     <bool name="pref_default_value_read_remote_files_for_thumbnail">true</bool>
     <string name="pref_key_notification_permission_reminder_dismissed">key_notification_permission_reminder_dismissed</string>
     <bool name="pref_default_value_notification_permission_reminder_dismissed">false</bool>
+    <string name="pref_key_trash_enabled">key_trash_enabled</string>
+    <bool name="pref_default_value_trash_enabled">true</bool>
+    <string name="pref_key_trash_retention_days">key_trash_retention_days</string>
+    <integer name="pref_default_value_trash_retention_days">30</integer>
 </resources>

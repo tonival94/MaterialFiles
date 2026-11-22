@@ -48,6 +48,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.leinardi.android.speeddial.SpeedDialView
 import java8.nio.file.AccessDeniedException
 import java8.nio.file.NoSuchFileException
@@ -87,6 +88,7 @@ import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.terminal.Terminal
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.ui.AppBarLayoutExpandHackListener
 import me.zhanghai.android.files.ui.CoordinatorAppBarLayout
 import me.zhanghai.android.files.ui.DrawerLayoutOnBackPressedCallback
@@ -564,6 +566,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 refresh()
                 true
             }
+            R.id.action_empty_trash -> {
+                confirmEmptyTrash()
+                true
+            }
             R.id.action_select_all -> {
                 selectAllFiles()
                 true
@@ -630,6 +636,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     private fun onCurrentPathChanged(path: Path) {
+        updatePathMenuItems()
         updateOverlayToolbar()
         updateBottomToolbar()
     }
@@ -812,6 +819,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         menuBinding.openInTerminalItem.isVisible = isVisible
         menuBinding.addBookmarkItem.isVisible = isVisible
         menuBinding.createShortcutItem.isVisible = isVisible
+        menuBinding.emptyTrashItem.isVisible =
+            !viewModel.isRecentFiles && viewModel.currentPath == Trash.filesDirectory
     }
 
     private fun navigateUp() {
@@ -1074,6 +1083,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 PreviewableFileDetector.isPreviewable(it.path)
             }
             menu.findItem(R.id.action_preview).isVisible = areAllFilesPreviewable
+            menu.findItem(R.id.action_restore).isVisible =
+                files.all { Trash.isTrashedItem(it.path) }
         }
         if (!overlayActionMode.isActive) {
             binding.appBarLayout.setExpanded(true)
@@ -1113,6 +1124,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             }
             R.id.action_delete -> {
                 confirmDeleteFiles(viewModel.selectedFiles)
+                true
+            }
+            R.id.action_restore -> {
+                restoreFilesFromTrash(viewModel.selectedFiles)
                 true
             }
             R.id.action_extract -> {
@@ -1171,9 +1186,24 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         ConfirmDeleteFilesDialogFragment.show(files, this)
     }
 
-    override fun deleteFiles(files: FileItemSet) {
-        FileJobService.delete(makePathListForJob(files), requireContext())
+    override fun deleteFiles(files: FileItemSet, moveToTrash: Boolean) {
+        FileJobService.delete(makePathListForJob(files), requireContext(), moveToTrash)
         viewModel.selectFiles(files, false)
+    }
+
+    private fun restoreFilesFromTrash(files: FileItemSet) {
+        FileJobService.restoreFromTrash(makePathListForJob(files), requireContext())
+        viewModel.selectFiles(files, false)
+    }
+
+    private fun confirmEmptyTrash() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setMessage(R.string.trash_empty_message)
+            .setPositiveButton(R.string.trash_delete_permanently) { _, _ ->
+                FileJobService.emptyTrash(requireContext())
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun extractFiles(files: FileItemSet) {
@@ -1961,7 +1991,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         val copyPathItem: MenuItem,
         val openInTerminalItem: MenuItem,
         val addBookmarkItem: MenuItem,
-        val createShortcutItem: MenuItem
+        val createShortcutItem: MenuItem,
+        val emptyTrashItem: MenuItem
     ) {
         companion object {
             fun inflate(menu: Menu, inflater: MenuInflater): MenuBinding {
@@ -1984,7 +2015,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                     menu.findItem(R.id.action_copy_path),
                     menu.findItem(R.id.action_open_in_terminal),
                     menu.findItem(R.id.action_add_bookmark),
-                    menu.findItem(R.id.action_create_shortcut)
+                    menu.findItem(R.id.action_create_shortcut),
+                    menu.findItem(R.id.action_empty_trash)
                 )
             }
         }

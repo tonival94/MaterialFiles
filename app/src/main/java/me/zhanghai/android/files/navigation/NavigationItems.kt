@@ -30,6 +30,7 @@ import me.zhanghai.android.files.storage.AddStorageDialogActivity
 import me.zhanghai.android.files.storage.FileSystemRoot
 import me.zhanghai.android.files.storage.Storage
 import me.zhanghai.android.files.storage.StorageVolumeListLiveData
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.isMounted
 import me.zhanghai.android.files.util.putArgs
@@ -211,6 +212,9 @@ private val standardDirectoryItems: List<NavigationItem>
         if (Settings.FILE_LIST_SHOW_RECENT_FILES.valueCompat) {
             items.add(standardDirectories.recentFilesIndex, RecentFilesItem())
         }
+        if (Trash.isEnabled) {
+            items.add(TrashItem())
+        }
         return items
     }
 
@@ -247,6 +251,23 @@ private class StandardDirectoryItem(
     override fun onLongClick(listener: Listener): Boolean {
         listener.launchIntent(StandardDirectoryListActivity::class.createIntent())
         return true
+    }
+}
+
+private class TrashItem : NavigationItem() {
+    override val id: Long = R.string.navigation_trash.toLong()
+
+    @DrawableRes
+    override val iconRes: Int = R.drawable.trash_icon_white_24dp
+
+    override fun getTitle(context: Context): String = context.getString(R.string.navigation_trash)
+
+    override fun isChecked(listener: Listener): Boolean =
+        !listener.isRecentFiles && listener.currentPath == Trash.filesDirectory
+
+    override fun onClick(listener: Listener) {
+        listener.navigateTo(Trash.filesDirectory)
+        listener.closeNavigationDrawer()
     }
 }
 

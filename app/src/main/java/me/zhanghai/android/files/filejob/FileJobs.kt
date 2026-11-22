@@ -86,6 +86,7 @@ import me.zhanghai.android.files.provider.common.setSeLinuxContext
 import me.zhanghai.android.files.provider.common.toByteString
 import me.zhanghai.android.files.provider.common.toModeString
 import me.zhanghai.android.files.provider.linux.isLinuxPath
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.asFileName
 import me.zhanghai.android.files.util.createInstallPackageIntent
 import me.zhanghai.android.files.util.createIntent
@@ -940,14 +941,44 @@ private fun FileJob.create(path: Path, createDirectory: Boolean) {
     } while (retry)
 }
 
-class DeleteFileJob(private val paths: List<Path>) : FileJob() {
+/**
+ * Deletes [paths], or moves them to the trash when [moveToTrash] is set and the trash supports
+ * them. With [emptyTrash], deletes everything in the trash instead of [paths].
+ */
+class DeleteFileJob(
+    private val paths: List<Path>,
+    private val moveToTrash: Boolean = false,
+    private val emptyTrash: Boolean = false
+) : FileJob() {
     @Throws(IOException::class)
     override fun run() {
-        val scanInfo = scan(paths, R.plurals.file_job_delete_scan_notification_title_format)
+        val paths = if (emptyTrash) Trash.listItems() else paths
+        val pathsToDelete = mutableListOf<Path>()
+        for (path in paths) {
+            if (moveToTrash && !Trash.isInTrash(path) && Trash.canMoveToTrash(path)) {
+                val trashedPath = Trash.prepareMoveToTrash(path)
+                try {
+                    rename(path, trashedPath)
+                } catch (e: IOException) {
+                    Trash.abandon(trashedPath)
+                    throw e
+                }
+                throwIfInterrupted()
+            } else {
+                pathsToDelete += path
+            }
+        }
+        if (pathsToDelete.isEmpty()) {
+            return
+        }
+        val scanInfo = scan(pathsToDelete, R.plurals.file_job_delete_scan_notification_title_format)
         val transferInfo = TransferInfo(scanInfo, null)
         val actionAllInfo = ActionAllInfo()
-        for (path in paths) {
+        for (path in pathsToDelete) {
             deleteRecursively(path, transferInfo, actionAllInfo)
+            if (Trash.isTrashedItem(path) && !path.exists(LinkOption.NOFOLLOW_LINKS)) {
+                Trash.deletePermanently(path)
+            }
             throwIfInterrupted()
         }
     }
@@ -1537,6 +1568,40 @@ private fun FileJob.open(
         intentCreator(targetFile), getString(notificationTitleFormatRes, targetFileName),
         getString(notificationTextRes), service
     )
+}
+
+/** Moves items out of the trash, back to where they were deleted from. */
+class RestoreFromTrashJob(private val paths: List<Path>) : FileJob() {
+    @Throws(IOException::class)
+    override fun run() {
+        for (path in paths) {
+            if (!Trash.isTrashedItem(path)) {
+                continue
+            }
+            val originalPath = Trash.getOriginalPath(path)
+                ?: Trash.defaultRestoreDirectory.resolve(path.fileName.toString())
+            val parent = originalPath.parent
+            if (parent != null && !parent.exists()) {
+                parent.createDirectories()
+            }
+            var targetPath = originalPath
+            var index = 2
+            while (targetPath.exists(LinkOption.NOFOLLOW_LINKS)) {
+                val name = originalPath.fileName.toString()
+                val dotIndex = name.lastIndexOf('.')
+                val newName = if (dotIndex > 0) {
+                    name.substring(0, dotIndex) + " ($index)" + name.substring(dotIndex)
+                } else {
+                    "$name ($index)"
+                }
+                targetPath = originalPath.resolveSibling(newName)
+                ++index
+            }
+            rename(path, targetPath)
+            Trash.abandon(path)
+            throwIfInterrupted()
+        }
+    }
 }
 
 class RenameFileJob(private val path: Path, private val newName: String) : FileJob() {

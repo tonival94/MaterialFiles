@@ -15,6 +15,7 @@ import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.provider.common.PosixFileModeBit
 import me.zhanghai.android.files.provider.common.PosixGroup
 import me.zhanghai.android.files.provider.common.PosixUser
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.ForegroundNotificationManager
 import me.zhanghai.android.files.util.WakeWifiLock
 import me.zhanghai.android.files.util.removeFirst
@@ -131,8 +132,20 @@ class FileJobService : Service() {
             startJob(CreateFileJob(path, createDirectory), context)
         }
 
-        fun delete(paths: List<Path>, context: Context) {
-            startJob(DeleteFileJob(paths), context)
+        fun delete(
+            paths: List<Path>,
+            context: Context,
+            moveToTrash: Boolean = Trash.isEnabled
+        ) {
+            startJob(DeleteFileJob(paths, moveToTrash), context)
+        }
+
+        fun emptyTrash(context: Context) {
+            startJob(DeleteFileJob(emptyList(), emptyTrash = true), context)
+        }
+
+        fun restoreFromTrash(paths: List<Path>, context: Context) {
+            startJob(RestoreFromTrashJob(paths), context)
         }
 
         fun move(sources: List<Path>, targetDirectory: Path, context: Context) {

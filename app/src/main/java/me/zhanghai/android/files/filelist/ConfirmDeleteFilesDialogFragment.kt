@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.parcelize.Parcelize
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.args
 import me.zhanghai.android.files.util.getQuantityString
@@ -44,11 +45,33 @@ class ConfirmDeleteFilesDialogFragment : AppCompatDialogFragment() {
             }
             getQuantityString(messageRes, files.size, files.size)
         }
-        return MaterialAlertDialogBuilder(requireContext(), theme)
-            .setMessage(message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> listener.deleteFiles(files) }
+        val isInTrash = files.any { Trash.isInTrash(it.path) }
+        val canMoveToTrash = Trash.isEnabled && !isInTrash &&
+            files.any { Trash.canMoveToTrash(it.path) }
+        val builder = MaterialAlertDialogBuilder(requireContext(), theme)
             .setNegativeButton(android.R.string.cancel, null)
-            .create()
+        if (canMoveToTrash) {
+            builder
+                .setMessage(message)
+                .setPositiveButton(R.string.trash_move_to_trash) { _, _ ->
+                    listener.deleteFiles(files, true)
+                }
+                .setNeutralButton(R.string.trash_delete_permanently) { _, _ ->
+                    listener.deleteFiles(files, false)
+                }
+        } else {
+            val fullMessage = if (isInTrash) {
+                message + "\n\n" + getString(R.string.trash_delete_permanently_message)
+            } else {
+                message
+            }
+            builder
+                .setMessage(fullMessage)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    listener.deleteFiles(files, false)
+                }
+        }
+        return builder.create()
     }
 
     companion object {
@@ -61,6 +84,6 @@ class ConfirmDeleteFilesDialogFragment : AppCompatDialogFragment() {
     class Args(val files: FileItemSet) : ParcelableArgs
 
     interface Listener {
-        fun deleteFiles(files: FileItemSet)
+        fun deleteFiles(files: FileItemSet, moveToTrash: Boolean)
     }
 }

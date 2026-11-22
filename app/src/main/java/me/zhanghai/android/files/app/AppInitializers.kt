@@ -29,6 +29,7 @@ import me.zhanghai.android.files.provider.ftp.client.Client as FtpClient
 import me.zhanghai.android.files.provider.sftp.client.Client as SftpClient
 import me.zhanghai.android.files.provider.smb.client.Client as SmbClient
 import me.zhanghai.android.files.provider.webdav.client.Client as WebDavClient
+import me.zhanghai.android.files.trash.Trash
 
 val appInitializers = listOf(
     ::initializeFirebase,
@@ -39,10 +40,15 @@ val appInitializers = listOf(
     ::upgradeApp,
     ::initializeLiveDataObjects,
     ::initializeRecentFilesShortcut,
+    ::initializeTrash,
     ::initializeCustomTheme,
     ::initializeNightMode,
     ::createNotificationChannels
 )
+
+private fun initializeTrash() {
+    AsyncTask.THREAD_POOL_EXECUTOR.execute { Trash.initialize() }
+}
 
 private fun initializeFirebase() {
 //#ifdef NONFREE
