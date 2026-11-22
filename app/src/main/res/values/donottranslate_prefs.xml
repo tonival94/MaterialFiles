@@ -103,4 +103,6 @@
     <integer name="pref_default_value_trash_retention_days">30</integer>
     <string name="pref_key_file_list_show_directory_item_count">key_file_list_show_directory_item_count</string>
     <bool name="pref_default_value_file_list_show_directory_item_count">true</bool>
+    <string name="pref_key_export_servers">key_export_servers</string>
+    <string name="pref_key_import_servers">key_import_servers</string>
 </resources>

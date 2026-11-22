@@ -863,4 +863,18 @@
         <item quantity="one">%1$d item</item>
         <item quantity="other">%1$d items</item>
     </plurals>
+    <string name="settings_servers_title">Network servers</string>
+    <string name="settings_export_servers_title">Export servers</string>
+    <string name="settings_export_servers_summary">Save SMB, FTP, SFTP and WebDAV servers to a file, without passwords</string>
+    <string name="settings_import_servers_title">Import servers</string>
+    <string name="settings_import_servers_summary">Add servers from an exported file; passwords have to be entered again</string>
+    <plurals name="settings_export_servers_done_format">
+        <item quantity="one">Exported %1$d server</item>
+        <item quantity="other">Exported %1$d servers</item>
+    </plurals>
+    <plurals name="settings_import_servers_done_format">
+        <item quantity="one">Imported %1$d server</item>
+        <item quantity="other">Imported %1$d servers</item>
+    </plurals>
+    <string name="settings_import_servers_error">This file isn’t a server export</string>
 </resources>
