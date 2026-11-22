@@ -1579,7 +1579,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         if (shouldRequest) {
             requestNotificationPermission()
         } else {
-			Settings.NOTIFICATION_PERMISSION_REMINDER_DISMISSED.putValue(true)
+            Settings.NOTIFICATION_PERMISSION_REMINDER_DISMISSED.putValue(true)
             viewModel.isNotificationPermissionRequested = false
         }
     }
@@ -1593,7 +1593,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     private fun onRequestNotificationPermissionResult(isGranted: Boolean) {
         if (isGranted) {
             Settings.NOTIFICATION_PERMISSION_REMINDER_DISMISSED.putValue(false)
-			viewModel.isNotificationPermissionRequested = false
+            viewModel.isNotificationPermissionRequested = false
         } else if (shouldShowRequestPermissionRationale(
             android.Manifest.permission.POST_NOTIFICATIONS
         )) {
@@ -1611,7 +1611,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             requestNotificationPermissionInSettings()
         } else {
             Settings.NOTIFICATION_PERMISSION_REMINDER_DISMISSED.putValue(true)
-			viewModel.isNotificationPermissionRequested = false
+            viewModel.isNotificationPermissionRequested = false
         }
     }
 
