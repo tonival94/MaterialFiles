@@ -1635,8 +1635,9 @@ class BatchRenameFileJob(
             val isCaseOnlyChange = path.fileName.toString()
                 .equals(targetPath.fileName.toString(), ignoreCase = true)
             if (targetPath in sourcePaths || isCaseOnlyChange) {
+                // Not a hidden name, so that the file stays visible if the job is interrupted.
                 val temporaryPath = path.resolveSibling(
-                    ".${path.fileName}.rename-${System.currentTimeMillis()}-$index.tmp"
+                    "${path.fileName}.rename-${System.currentTimeMillis()}-$index.tmp"
                 )
                 rename(path, temporaryPath)
                 currentPaths[index] = temporaryPath

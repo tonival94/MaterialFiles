@@ -5,6 +5,8 @@
 
 package me.zhanghai.android.files.filelist
 
+import android.os.Handler
+import android.os.Looper
 import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
@@ -301,7 +303,8 @@ class FileListAdapter(
             } catch (e: Exception) {
                 null
             }
-            textView.post {
+            // Unlike View.post(), this runs even if the view has been detached meanwhile.
+            mainHandler.post {
                 pendingDirectoryItemCounts.remove(path)
                 if (newCount == null) {
                     return@post
@@ -584,6 +587,7 @@ class FileListAdapter(
 
     companion object {
         private val directoryItemCountExecutor = Executors.newFixedThreadPool(2)
+        private val mainHandler = Handler(Looper.getMainLooper())
 
         private val PAYLOAD_STATE_CHANGED = Any()
 
