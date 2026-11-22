@@ -287,6 +287,7 @@
     <string name="file_create_directory_title">Nuova cartella</string>
 
     <string name="file_list_title">File</string>
+    <string name="file_list_archive_read_only">Gli archivi sono in sola lettura</string>
     <plurals name="file_list_title_open_file">
         <item quantity="one">Seleziona un file</item>
         <item quantity="many">Seleziona i file</item>
