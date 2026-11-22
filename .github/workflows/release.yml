@@ -72,10 +72,11 @@ jobs:
     - name: Restore signing key
       if: steps.version.outputs.skip != 'true'
       env:
-        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        # The keystore secret may be called KEYSTORE_BASE64 or KEYSTORE.
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || secrets.KEYSTORE }}
       run: |
         if [ -z "$KEYSTORE_BASE64" ]; then
-          echo "Missing KEYSTORE_BASE64 secret" >&2
+          echo "Missing KEYSTORE_BASE64 (or KEYSTORE) secret" >&2
           exit 1
         fi
         printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
