@@ -965,7 +965,7 @@ class DeleteFileJob(
                 }
                 throwIfInterrupted()
             } else {
-                pathsToDelete += path
+                pathsToDelete.add(path)
             }
         }
         if (pathsToDelete.isEmpty()) {

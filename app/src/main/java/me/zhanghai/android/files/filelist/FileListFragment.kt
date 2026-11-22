@@ -683,8 +683,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             val error = throwable.toUserMessage()
             // The current directory was deleted (or a stale breadcrumb was tapped): go back to its
             // parent instead of staying in a directory that no longer exists.
-            if (throwable is NoSuchFileException && !isSearching
-                && throwable.file == viewModel.currentPath.toString() && viewModel.navigateUp()) {
+            if (throwable is NoSuchFileException && !viewModel.searchState.isSearching &&
+                !viewModel.isRecentFiles &&
+                throwable.file == viewModel.currentPath.toString() && viewModel.navigateUp()) {
                 showToast(error)
                 return
             }
