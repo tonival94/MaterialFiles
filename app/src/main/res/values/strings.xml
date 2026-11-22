@@ -847,4 +847,12 @@
     <string name="trash_delete_permanently">Delete permanently</string>
     <string name="trash_move_to_trash">Move to trash</string>
     <string name="trash_delete_permanently_message">Files in the trash are deleted permanently.</string>
+    <string name="batch_rename_title_format">Rename %1$d items</string>
+    <string name="batch_rename_pattern">New name</string>
+    <string name="batch_rename_pattern_helper">{name} = original name, {n} = number</string>
+    <string name="batch_rename_start_number">Start number</string>
+    <string name="batch_rename_find">Find</string>
+    <string name="batch_rename_replace">Replace with</string>
+    <string name="batch_rename_keep_extension">Keep extension</string>
+    <string name="batch_rename_error_duplicate">Some new names are the same</string>
 </resources>
