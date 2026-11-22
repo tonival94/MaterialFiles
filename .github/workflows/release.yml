@@ -79,7 +79,11 @@ jobs:
           echo "Missing KEYSTORE_BASE64 (or KEYSTORE) secret" >&2
           exit 1
         fi
-        printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+        # Tolerate spaces and line breaks added when copying the text.
+        CLEAN="$(printf '%s' "$KEYSTORE_BASE64" | tr -d ' \t\r\n')"
+        echo "Keystore text length: ${#CLEAN} characters"
+        printf '%s' "$CLEAN" | base64 -d > "$RUNNER_TEMP/release.jks"
+        echo "Keystore file size: $(stat -c %s "$RUNNER_TEMP/release.jks") bytes"
 
     - name: Build signed APK
       if: steps.version.outputs.skip != 'true'
