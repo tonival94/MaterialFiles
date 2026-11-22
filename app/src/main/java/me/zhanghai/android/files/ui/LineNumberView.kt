@@ -103,8 +103,8 @@ class LineNumberView @JvmOverloads constructor(
             val y = lineTop - scrollOffset + baselineOffset
             canvas.drawText(
                 "${i + 1}",
-                width - drawPadding,
-                y,
+                (width - drawPadding).toFloat(),
+                y.toFloat(),
                 numberPaint
             )
         }

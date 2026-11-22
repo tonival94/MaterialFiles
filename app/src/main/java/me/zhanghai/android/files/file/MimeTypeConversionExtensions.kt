@@ -208,7 +208,7 @@ val MimeType.isMarkdown: Boolean
 val MimeType.isCode: Boolean
     get() = isPreviewable && !isMarkdown && this != MimeType.TEXT_PLAIN
 
-private val Collection<MimeType>.intentType: String
+val Collection<MimeType>.intentType: String
     get() {
         if (isEmpty()) {
             return MimeType.ANY.value

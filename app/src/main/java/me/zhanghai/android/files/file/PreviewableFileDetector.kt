@@ -45,7 +45,7 @@ object PreviewableFileDetector {
     )
 
     fun isPreviewable(path: Path): Boolean {
-        val extension = path.extension?.lowercase()
+        val extension = path.fileExtension?.lowercase()
         if (extension != null) {
             if (extension in markdownExtensions) return true
             if (extension in codeExtensions) return true
@@ -57,7 +57,7 @@ object PreviewableFileDetector {
     }
 
     fun getPreviewType(path: Path): PreviewType {
-        val extension = path.extension?.lowercase()
+        val extension = path.fileExtension?.lowercase()
         if (extension in markdownExtensions) return PreviewType.MARKDOWN
         if (extension in codeExtensions) return PreviewType.CODE
         val fileName = path.fileName.toString().lowercase()
@@ -66,7 +66,7 @@ object PreviewableFileDetector {
     }
 
     fun getHighlightLanguage(path: Path): String {
-        val extension = path.extension?.lowercase() ?: return ""
+        val extension = path.fileExtension?.lowercase() ?: return ""
         val fileName = path.fileName.toString().lowercase()
         return when (extension) {
             "kt", "ktm", "kts" -> "kotlin"
@@ -121,3 +121,6 @@ object PreviewableFileDetector {
         }
     }
 }
+
+private val Path.fileExtension: String?
+    get() = fileName?.toString()?.substringAfterLast('.', "")?.takeIf { it.isNotEmpty() }
