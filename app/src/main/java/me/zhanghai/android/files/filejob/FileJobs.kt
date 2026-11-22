@@ -1668,7 +1668,7 @@ class RestoreFromTrashJob(private val paths: List<Path>) : FileJob() {
                 ?: Trash.defaultRestoreDirectory.resolve(path.fileName.toString())
             val parent = originalPath.parent
             if (parent != null && !parent.exists()) {
-                parent.createDirectories()
+                with(Trash) { parent.createDirectoriesOneByOne() }
             }
             var targetPath = originalPath
             var index = 2

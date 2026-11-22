@@ -7,8 +7,14 @@ ACTIVITY=me.zhanghai.android.files.filelist.FileListActivity
 run_test() {
     local name=$1 apk=$2 package=$3
     echo "=============== $name ==============="
+    adb uninstall "$package" > /dev/null 2>&1
     adb logcat -c
     adb install -r -g "$apk" || { echo "INSTALL FAILED"; return; }
+    # First start without, then with access to all files (which the trash needs).
+    adb shell am start -W -n "$package/$ACTIVITY"
+    sleep 10
+    adb shell appops set "$package" MANAGE_EXTERNAL_STORAGE allow
+    adb shell am force-stop "$package"
     adb shell am start -W -n "$package/$ACTIVITY"
     sleep 15
     adb shell pidof "$package" && echo "PROCESS ALIVE" || echo "PROCESS NOT RUNNING"

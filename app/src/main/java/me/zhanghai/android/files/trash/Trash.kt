@@ -6,11 +6,12 @@
 package me.zhanghai.android.files.trash
 
 import android.os.Environment
+import java8.nio.file.FileAlreadyExistsException
 import java8.nio.file.LinkOption
 import java8.nio.file.Path
 import java8.nio.file.Paths
 import java8.nio.file.StandardCopyOption
-import me.zhanghai.android.files.provider.common.createDirectories
+import me.zhanghai.android.files.provider.common.createDirectory
 import me.zhanghai.android.files.provider.common.delete
 import me.zhanghai.android.files.provider.common.deleteIfExists
 import me.zhanghai.android.files.provider.common.exists
@@ -67,14 +68,14 @@ object Trash {
         if (!isEnabled) {
             return
         }
+        // This runs at startup in the background, so it must never crash the app.
         try {
             ensureDirectories()
-        } catch (e: IOException) {
+            purgeExpired()
+        } catch (e: Exception) {
             // E.g. storage permission not granted yet.
             e.printStackTrace()
-            return
         }
-        purgeExpired()
     }
 
     /** Whether [path] can be moved to the trash, instead of being deleted right away. */
@@ -94,8 +95,8 @@ object Trash {
 
     @Throws(IOException::class)
     private fun ensureDirectories() {
-        filesDirectory.createDirectories()
-        infoDirectory.createDirectories()
+        filesDirectory.createDirectoriesOneByOne()
+        infoDirectory.createDirectoriesOneByOne()
         val noMediaFile = rootDirectory.resolve(NO_MEDIA_FILE_NAME)
         if (!noMediaFile.exists()) {
             noMediaFile.newOutputStream().close()
@@ -215,6 +216,25 @@ object Trash {
             path.delete(true)
         } else {
             path.delete(false)
+        }
+    }
+
+    /**
+     * Like [createDirectories], which can't be used here: it iterates over the path, and our path
+     * implementations don't support that.
+     */
+    @Throws(IOException::class)
+    fun Path.createDirectoriesOneByOne() {
+        if (isDirectory()) {
+            return
+        }
+        parent?.createDirectoriesOneByOne()
+        try {
+            createDirectory()
+        } catch (e: FileAlreadyExistsException) {
+            if (!isDirectory()) {
+                throw e
+            }
         }
     }
 
