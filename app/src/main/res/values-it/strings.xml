@@ -288,6 +288,9 @@
 
     <string name="file_list_title">File</string>
     <string name="file_list_archive_read_only">Gli archivi sono in sola lettura</string>
+    <string name="file_list_error_not_found">Questo file o questa cartella non esiste più</string>
+    <string name="file_list_error_access_denied">Accesso negato</string>
+    <string name="file_list_error_not_a_browsable_directory">Questa posizione non può essere aperta come cartella</string>
     <plurals name="file_list_title_open_file">
         <item quantity="one">Seleziona un file</item>
         <item quantity="many">Seleziona i file</item>
