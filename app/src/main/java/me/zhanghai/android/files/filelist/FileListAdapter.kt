@@ -5,13 +5,8 @@
 
 package me.zhanghai.android.files.filelist
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.os.SystemClock
 import android.text.TextUtils
-import android.view.MotionEvent
 import android.view.View
-import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -42,16 +37,10 @@ import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.ui.AnimatedListAdapter
 import me.zhanghai.android.files.ui.CheckableForegroundLinearLayout
 import me.zhanghai.android.files.ui.CheckableItemBackground
-import me.zhanghai.android.files.util.activity
 import me.zhanghai.android.files.util.isMaterial3Theme
 import me.zhanghai.android.files.util.layoutInflater
 import me.zhanghai.android.files.util.valueCompat
-import java.io.File
-import java.util.BitSet
 import java.util.Locale
-import kotlin.math.abs
-import kotlin.math.roundToInt
-
 
 class FileListAdapter(
     private val listener: Listener
@@ -88,7 +77,20 @@ class FileListAdapter(
 
     private val selectedFiles = fileItemSetOf()
 
-    private val _touchData: TouchData = TouchData()
+    private val dragSelectTouchListener = DragSelectTouchListener(
+        object : DragSelectTouchListener.Listener {
+            override fun onDragSelectionUpdate(position: Int) {
+                updateDragSelection(position)
+            }
+
+            override fun onDragSelectionEnd() {
+                endDragSelection()
+            }
+        }
+    )
+    private var dragAnchorPosition = RecyclerView.NO_POSITION
+    private var dragLastPosition = RecyclerView.NO_POSITION
+    private var dragInitialSelection: FileItemSet? = null
 
     private val filePositionMap = mutableMapOf<Path, Int>()
 
@@ -139,6 +141,89 @@ class FileListAdapter(
             listener.clearSelectedFiles()
         }
         listener.selectFile(file, !selected)
+    }
+
+    /**
+     * Starts selecting a range by dragging from the item at [position]. Ranges add to the files
+     * that were already selected, so that several ranges can be selected one after another.
+     *
+     * @return whether drag selection has started.
+     */
+    private fun startDragSelection(position: Int): Boolean {
+        val pickOptions = pickOptions
+        if (pickOptions != null && !pickOptions.allowMultiple) {
+            return false
+        }
+        if (position !in 0..<itemCount || !isFileSelectable(getItem(position))) {
+            return false
+        }
+        dragInitialSelection = fileItemSetOf().apply { addAll(selectedFiles) }
+        dragAnchorPosition = position
+        dragLastPosition = position
+        val file = getItem(position)
+        if (file !in selectedFiles) {
+            listener.selectFile(file, true)
+        }
+        dragSelectTouchListener.startDrag(position)
+        return true
+    }
+
+    private fun updateDragSelection(position: Int) {
+        val initialSelection = dragInitialSelection ?: return
+        if (position !in 0..<itemCount || position == dragLastPosition) {
+            return
+        }
+        val oldRange = rangeOf(dragAnchorPosition, dragLastPosition)
+        val newRange = rangeOf(dragAnchorPosition, position)
+        val filesToSelect = fileItemSetOf()
+        for (index in newRange) {
+            if (index in oldRange) {
+                continue
+            }
+            val file = getItem(index)
+            if (isFileSelectable(file) && file !in selectedFiles) {
+                filesToSelect.add(file)
+            }
+        }
+        // Items leaving the range go back to the state they had before this drag.
+        val filesToUnselect = fileItemSetOf()
+        for (index in oldRange) {
+            if (index in newRange || index !in 0..<itemCount) {
+                continue
+            }
+            val file = getItem(index)
+            if (file !in initialSelection && file in selectedFiles) {
+                filesToUnselect.add(file)
+            }
+        }
+        dragLastPosition = position
+        if (filesToSelect.isNotEmpty()) {
+            listener.selectFiles(filesToSelect, true)
+        }
+        if (filesToUnselect.isNotEmpty()) {
+            listener.selectFiles(filesToUnselect, false)
+        }
+    }
+
+    private fun endDragSelection() {
+        dragInitialSelection = null
+        dragAnchorPosition = RecyclerView.NO_POSITION
+        dragLastPosition = RecyclerView.NO_POSITION
+    }
+
+    private fun rangeOf(start: Int, end: Int): IntRange =
+        if (start <= end) start..end else end..start
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+
+        dragSelectTouchListener.attach(recyclerView)
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+
+        dragSelectTouchListener.detach()
     }
 
     fun selectAllFiles() {
@@ -201,7 +286,6 @@ class FileListAdapter(
         return holder.apply {
             itemLayout.apply {
                 val context = context
-
                 val isMaterial3Theme = context.isMaterial3Theme
                 if (viewType == FileViewType.GRID && isMaterial3Theme) {
                     foregroundCompat =
@@ -236,84 +320,6 @@ class FileListAdapter(
         throw UnsupportedOperationException()
     }
 
-    private fun onTouchListener(context: Context, holder: ViewHolder, view: View, event: MotionEvent, file: FileItem) {
-        if (_viewType == FileViewType.GRID) return
-        val maxWaitMillisSelection = 400L
-        val lineHeight = (view.parent as CheckableForegroundLinearLayout).height
-        val localPosition = holder.absoluteAdapterPosition
-        val horizontalError = 7.5f
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                view.parent.requestDisallowInterceptTouchEvent(true)
-                _touchData.setup(
-                    pStartTouchPosX = event.x,
-                    pStartTouchPosY = event.y,
-                    pIsDuringClick = true,
-                    pIsGestureHorizontal = false,
-                    pIsMultipleSelectionStarted = false,
-                    pClickedLineAnchorY = view.y,
-                    pLastPosSelected = localPosition,
-                    pActionIdentifier = event.eventTime,
-                )
-                _touchData.threadedWaiter = Thread {
-                    val id = _touchData.actionIdentifier
-                    SystemClock.sleep(maxWaitMillisSelection)
-                    if (!_touchData.isDuringClick || _touchData.isMultipleSelectionStarted || _touchData.isGestureHorizontal || id != _touchData.actionIdentifier) return@Thread
-                    _touchData.isMultipleSelectionStarted = true
-                    selectFile(file)
-                }
-                _touchData.threadedWaiter.start()
-            }
-            MotionEvent.ACTION_MOVE -> {
-                val deltaPos = ((event.y - _touchData.clickedLineAnchorY) / lineHeight).roundToInt()
-                val newPosition: Int = localPosition + deltaPos
-                if (newPosition != _touchData.lastPosSelected && !_touchData.isGestureHorizontal) {
-                    if (!_touchData.isMultipleSelectionStarted) {
-                        _touchData.isMultipleSelectionStarted = true
-                        selectFile(file)
-                    }
-                    if (newPosition < 0) return
-                    if (!_touchData.isDeltaPosSet) {
-                        _touchData.isDeltaPosSet = true
-                        _touchData.prevDeltaPos = 0
-                        _touchData.isDeltaPosGrowing = deltaPos > 0
-                    }
-                    if ((deltaPos > _touchData.prevDeltaPos) != _touchData.isDeltaPosGrowing) {
-                        _touchData.isDeltaPosGrowing = !_touchData.isDeltaPosGrowing
-                        selectFile(getItem(_touchData.lastPosSelected))
-                    }
-                    // Handle fast user input (touch capture may be too slow -- abs(deltaPos) > 1)
-                    if (_touchData.isDeltaPosGrowing) {
-                        for (p in _touchData.lastPosSelected+1..newPosition)
-                            selectFile(getItem(p))
-                    } else {
-                        for (p in newPosition..<_touchData.lastPosSelected) {
-                            selectFile(getItem(p))
-                        }
-                    }
-                    _touchData.lastPosSelected = newPosition
-                } else {
-                    if (_touchData.isMultipleSelectionStarted) return
-                    if (abs(event.x - _touchData.startTouchPosX) > horizontalError) {
-                        _touchData.isGestureHorizontal = true
-                        view.parent.requestDisallowInterceptTouchEvent(false)
-                    }
-                }
-                _touchData.prevDeltaPos = deltaPos
-            }
-            MotionEvent.ACTION_UP -> {
-                if (!_touchData.isMultipleSelectionStarted && TouchData.isClickAction(context, _touchData.startTouchPosX, _touchData.startTouchPosY, event.x, event.y)) {
-                    _touchData.isDuringClick = false
-                    view.performClick()
-                    view.parent.requestDisallowInterceptTouchEvent(false)
-                }
-                _touchData.isMultipleSelectionStarted = false
-                _touchData.isDeltaPosSet = false
-            }
-        }
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
         val file = getItem(position)
         val isDirectory = file.attributes.isDirectory
@@ -339,7 +345,6 @@ class FileListAdapter(
             return
         }
         bindViewHolderAnimation(holder)
-
         holder.itemLayout.apply {
             setOnClickListener {
                 if (selectedFiles.isEmpty()) {
@@ -349,6 +354,11 @@ class FileListAdapter(
                 }
             }
             setOnLongClickListener {
+                // Long press and drag selects a range; with files already selected, it adds
+                // another range to the selection.
+                if (startDragSelection(holder.bindingAdapterPosition)) {
+                    return@setOnLongClickListener true
+                }
                 if (selectedFiles.isEmpty()) {
                     selectFile(file)
                 } else {
@@ -357,13 +367,7 @@ class FileListAdapter(
                 true
             }
         }
-        holder.iconLayout.apply {
-            setOnTouchListener { view, event ->
-                onTouchListener(context, holder, view, event, file)
-                true
-            }
-            setOnClickListener { selectFile(file) }
-        }
+        holder.iconLayout.setOnClickListener { selectFile(file) }
         val iconRes = file.mimeType.iconRes
         holder.iconImage.apply {
             isVisible = true
@@ -594,48 +598,5 @@ class FileListAdapter(
         fun addBookmark(file: FileItem)
         fun createShortcut(file: FileItem)
         fun showPropertiesDialog(file: FileItem)
-    }
-}
-
-private data class TouchData(
-    var startTouchPosX: Float = 0f,
-    var startTouchPosY: Float = 0f,
-    var isDeltaPosSet: Boolean = false,
-    var isDeltaPosGrowing: Boolean = false,
-    var prevDeltaPos: Int = 0,
-    var isDuringClick: Boolean = false,
-    var isMultipleSelectionStarted: Boolean = false,
-    var isGestureHorizontal: Boolean = false,
-    var lastPosSelected: Int = -1,
-    var clickedLineAnchorY: Float = 0f,
-    var actionIdentifier: Long = 0L
-) {
-    lateinit var threadedWaiter: Thread
-
-    fun setup(pStartTouchPosX: Float,
-              pStartTouchPosY: Float,
-              pIsDuringClick: Boolean,
-              pIsGestureHorizontal: Boolean,
-              pIsMultipleSelectionStarted: Boolean,
-              pClickedLineAnchorY: Float,
-              pLastPosSelected: Int,
-              pActionIdentifier: Long) {
-        startTouchPosX = pStartTouchPosX
-        startTouchPosY = pStartTouchPosY
-        isDuringClick = pIsDuringClick
-        isGestureHorizontal = pIsGestureHorizontal
-        isMultipleSelectionStarted = pIsMultipleSelectionStarted
-        clickedLineAnchorY = pClickedLineAnchorY
-        lastPosSelected = pLastPosSelected
-        actionIdentifier = pActionIdentifier
-    }
-
-    companion object {
-        fun isClickAction(context: Context, startX: Float, startY: Float, endX: Float, endY: Float): Boolean {
-            val clickActionThreshold = ViewConfiguration.get(context).scaledTouchSlop
-            val differenceX = abs(startX - endX)
-            val differenceY = abs(startY - endY)
-            return differenceX <= clickActionThreshold && differenceY <= clickActionThreshold
-        }
     }
 }
