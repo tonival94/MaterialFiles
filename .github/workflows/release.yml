@@ -73,7 +73,8 @@ jobs:
       if: steps.version.outputs.skip != 'true'
       env:
         # The key is derived from this secret, so the same secret always gives the same key.
-        SIGNING_SECRET: ${{ secrets.STORE_PASSWORD }}
+        # Never change or delete it: a different key can't update the installed app.
+        SIGNING_SECRET: ${{ secrets.KEYSTORE }}
       run: |
         pip install --quiet 'cryptography>=44'
         python3 .github/scripts/derive_signing_key.py "$RUNNER_TEMP/release.p12" materialfiles
@@ -82,9 +83,9 @@ jobs:
       if: steps.version.outputs.skip != 'true'
       env:
         STORE_FILE: ${{ runner.temp }}/release.p12
-        STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        STORE_PASSWORD: ${{ secrets.KEYSTORE }}
         KEY_ALIAS: materialfiles
-        KEY_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        KEY_PASSWORD: ${{ secrets.KEYSTORE }}
       run: ./gradlew assembleRelease
 
     - name: Remove signing key
