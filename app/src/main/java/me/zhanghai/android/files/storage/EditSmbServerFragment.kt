@@ -123,6 +123,8 @@ class EditSmbServerFragment : Fragment() {
             }
         }
 
+        args.server?.let { binding.passwordLayout.hideToggleWhileSavedSecretUnchanged(it.password) }
+
         if (savedInstanceState == null) {
             val server = args.server
             if (server != null) {

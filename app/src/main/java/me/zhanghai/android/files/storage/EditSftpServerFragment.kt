@@ -139,6 +139,20 @@ class EditSftpServerFragment : Fragment() {
             }
         }
 
+        when (val authentication = args.server?.authentication) {
+            is PasswordAuthentication ->
+                binding.passwordLayout.hideToggleWhileSavedSecretUnchanged(authentication.password)
+            is PublicKeyAuthentication -> {
+                binding.privateKeyPasswordLayout.hideToggleWhileSavedSecretUnchanged(
+                    authentication.privateKeyPassword
+                )
+                // The saved private key is never shown; leaving the field empty keeps it.
+                binding.privateKeyLayout.helperText =
+                    getString(R.string.storage_edit_sftp_server_private_key_saved_helper)
+            }
+            else -> {}
+        }
+
         if (savedInstanceState == null) {
             val server = args.server
             if (server != null) {
@@ -155,7 +169,6 @@ class EditSftpServerFragment : Fragment() {
                     }
                     is PublicKeyAuthentication -> {
                         authenticationType = AuthenticationType.PUBLIC_KEY
-                        binding.privateKeyEdit.setText(authentication.privateKey)
                         binding.privateKeyPasswordEdit.setText(authentication.privateKeyPassword)
                     }
                 }
@@ -318,6 +331,7 @@ class EditSftpServerFragment : Fragment() {
             }
             AuthenticationType.PUBLIC_KEY -> {
                 val privateKey = binding.privateKeyEdit.text.toString().takeIfNotEmpty()
+                    ?: (args.server?.authentication as? PublicKeyAuthentication)?.privateKey
                 val privateKeyPassword =
                     binding.privateKeyPasswordEdit.text.toString().takeIfNotEmpty()
                 if (privateKey == null) {
