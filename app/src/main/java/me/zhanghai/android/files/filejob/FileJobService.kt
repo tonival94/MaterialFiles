@@ -136,6 +136,10 @@ class FileJobService : Service() {
             startJob(CreateFileJob(path, createDirectory), context)
         }
 
+        fun createSymbolicLink(link: Path, target: Path, context: Context) {
+            startJob(CreateSymbolicLinkJob(link, target), context)
+        }
+
         fun delete(
             paths: List<Path>,
             context: Context,

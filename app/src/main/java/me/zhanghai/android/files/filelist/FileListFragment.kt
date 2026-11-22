@@ -142,6 +142,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     ConfirmReplaceFileDialogFragment.Listener, OpenApkDialogFragment.Listener,
     ConfirmDeleteFilesDialogFragment.Listener, CreateArchiveDialogFragment.Listener,
     RenameFileDialogFragment.Listener, BatchRenameDialogFragment.Listener,
+    CreateSymbolicLinkDialogFragment.Listener,
     CreateFileDialogFragment.Listener,
     CreateDirectoryDialogFragment.Listener, NavigateToPathDialogFragment.Listener,
     NavigationFragment.Listener, ShowRequestAllFilesAccessRationaleDialogFragment.Listener,
@@ -411,6 +412,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         Settings.FILE_LIST_DENSE_LAYOUT.observe(viewLifecycleOwner) { onDenseLayoutChanged(it) }
         viewModel.pasteStateLiveData.observe(viewLifecycleOwner) { onPasteStateChanged(it) }
         Settings.FILE_NAME_ELLIPSIZE.observe(viewLifecycleOwner) { onFileNameEllipsizeChanged(it) }
+        Settings.FILE_LIST_SHOW_DIRECTORY_ITEM_COUNT.observe(viewLifecycleOwner) {
+            adapter.notifyItemRangeChanged(0, adapter.itemCount)
+        }
         viewModel.fileListLiveData.observe(viewLifecycleOwner) { onFileListChanged(it) }
         Settings.FILE_LIST_SHOW_HIDDEN_FILES.observe(viewLifecycleOwner) {
             onShowHiddenFilesChanged(it)
@@ -1638,6 +1642,15 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     override fun copyPath(file: FileItem) {
         copyPath(file.path)
+    }
+
+    override fun showCreateSymbolicLinkDialog(file: FileItem) {
+        CreateSymbolicLinkDialogFragment.show(file, this)
+    }
+
+    override fun createSymbolicLink(file: FileItem, name: String) {
+        val link = currentPath.resolve(name)
+        FileJobService.createSymbolicLink(link, file.path, requireContext())
     }
 
     override fun addBookmark(file: FileItem) {

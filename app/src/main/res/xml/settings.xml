@@ -51,6 +51,12 @@
             android:title="@string/settings_file_list_dense_layout_title"
             android:defaultValue="@bool/pref_default_value_file_list_dense_layout" />
 
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_file_list_show_directory_item_count"
+            android:title="@string/settings_show_directory_item_count_title"
+            android:defaultValue="@bool/pref_default_value_file_list_show_directory_item_count"
+            android:summary="@string/settings_show_directory_item_count_summary" />
+
         <rikka.preference.SimpleMenuPreference
             android:key="@string/pref_key_file_name_ellipsize"
             android:title="@string/settings_file_name_ellipsize_title"

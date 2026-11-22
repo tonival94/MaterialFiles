@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.dispose
 import coil.load
+import java.util.concurrent.Executors
+import java8.nio.file.Files
 import java8.nio.file.Path
 import me.zhanghai.android.fastscroll.PopupTextProvider
 import me.zhanghai.android.files.R
@@ -33,10 +35,12 @@ import me.zhanghai.android.files.file.iconRes
 import me.zhanghai.android.files.file.isApk
 import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.common.isEncrypted
+import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.ui.AnimatedListAdapter
 import me.zhanghai.android.files.ui.CheckableForegroundLinearLayout
 import me.zhanghai.android.files.ui.CheckableItemBackground
+import me.zhanghai.android.files.util.getQuantityString
 import me.zhanghai.android.files.util.isMaterial3Theme
 import me.zhanghai.android.files.util.layoutInflater
 import me.zhanghai.android.files.util.valueCompat
@@ -95,6 +99,11 @@ class FileListAdapter(
     private var dragInitialSelection: FileItemSet? = null
 
     private val filePositionMap = mutableMapOf<Path, Int>()
+
+    // Number of items in local directories, counted in the background. Only accessed on the main
+    // thread.
+    private val directoryItemCounts = mutableMapOf<Path, Int>()
+    private val pendingDirectoryItemCounts = mutableSetOf<Path>()
 
     private lateinit var _nameEllipsize: TextUtils.TruncateAt
     var nameEllipsize: TextUtils.TruncateAt
@@ -266,6 +275,46 @@ class FileListAdapter(
         val sortedList = if (!isUnsorted) list.sortedWith(sortOptions.createComparator()) else list
         super.replace(sortedList, clear)
         rebuildFilePositionMap()
+        // Directory contents may have changed since they were counted.
+        directoryItemCounts.clear()
+    }
+
+    private fun bindDirectoryItemCount(textView: TextView, path: Path) {
+        textView.tag = path
+        val count = directoryItemCounts[path]
+        if (count != null) {
+            textView.text = textView.context.getQuantityString(
+                R.plurals.file_item_directory_item_count_format, count, count
+            )
+            return
+        }
+        textView.text = null
+        if (!pendingDirectoryItemCounts.add(path)) {
+            return
+        }
+        val showHiddenFiles = Settings.FILE_LIST_SHOW_HIDDEN_FILES.valueCompat
+        directoryItemCountExecutor.execute {
+            val newCount = try {
+                Files.newDirectoryStream(path).use { children ->
+                    children.count { showHiddenFiles || !it.fileName.toString().startsWith(".") }
+                }
+            } catch (e: Exception) {
+                null
+            }
+            textView.post {
+                pendingDirectoryItemCounts.remove(path)
+                if (newCount == null) {
+                    return@post
+                }
+                directoryItemCounts[path] = newCount
+                // The view may have been recycled for another item meanwhile.
+                if (textView.tag == path) {
+                    textView.text = textView.context.getQuantityString(
+                        R.plurals.file_item_directory_item_count_format, newCount, newCount
+                    )
+                }
+            }
+        }
     }
 
     private fun rebuildFilePositionMap() {
@@ -434,6 +483,7 @@ class FileListAdapter(
             }
         }
         holder.nameText.text = file.name
+        holder.descriptionText?.tag = null
         holder.descriptionText?.text = if (isDirectory) {
             null
         } else {
@@ -444,11 +494,18 @@ class FileListAdapter(
             val descriptionSeparator = context.getString(R.string.file_item_description_separator)
             listOf(lastModificationTime, size).joinToString(descriptionSeparator)
         }
+        val descriptionText = holder.descriptionText
+        if (isDirectory && descriptionText != null && path.isLinuxPath &&
+            Settings.FILE_LIST_SHOW_DIRECTORY_ITEM_COUNT.valueCompat) {
+            bindDirectoryItemCount(descriptionText, path)
+        }
         val isArchivePath = path.isArchivePath
         menu.findItem(R.id.action_copy)
             .setTitle(if (isArchivePath) R.string.file_item_action_extract else R.string.copy)
         menu.findItem(R.id.action_delete).isVisible = !isReadOnly
         menu.findItem(R.id.action_rename).isVisible = !isReadOnly
+        menu.findItem(R.id.action_create_symbolic_link).isVisible =
+            !isReadOnly && !hasPickOptions && !path.isArchivePath
         menu.findItem(R.id.action_extract).isVisible = file.isArchiveFile
         menu.findItem(R.id.action_archive).isVisible = !isArchivePath
         menu.findItem(R.id.action_add_bookmark).isVisible = isDirectory
@@ -490,6 +547,10 @@ class FileListAdapter(
                     listener.copyPath(file)
                     true
                 }
+                R.id.action_create_symbolic_link -> {
+                    listener.showCreateSymbolicLinkDialog(file)
+                    true
+                }
                 R.id.action_add_bookmark -> {
                     listener.addBookmark(file)
                     true
@@ -522,6 +583,8 @@ class FileListAdapter(
         get() = Settings.FILE_LIST_ANIMATION.valueCompat
 
     companion object {
+        private val directoryItemCountExecutor = Executors.newFixedThreadPool(2)
+
         private val PAYLOAD_STATE_CHANGED = Any()
 
         private val CALLBACK = object : DiffUtil.ItemCallback<FileItem>() {
@@ -597,6 +660,7 @@ class FileListAdapter(
         fun showCreateArchiveDialog(file: FileItem)
         fun shareFile(file: FileItem)
         fun copyPath(file: FileItem)
+        fun showCreateSymbolicLinkDialog(file: FileItem)
         fun addBookmark(file: FileItem)
         fun createShortcut(file: FileItem)
         fun showPropertiesDialog(file: FileItem)

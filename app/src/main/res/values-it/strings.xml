@@ -731,4 +731,13 @@
     <string name="batch_rename_replace">Sostituisci con</string>
     <string name="batch_rename_keep_extension">Mantieni l’estensione</string>
     <string name="batch_rename_error_duplicate">Alcuni nuovi nomi sono uguali</string>
+    <string name="file_create_symbolic_link_title">Crea collegamento simbolico</string>
+    <string name="file_create_symbolic_link_name_format">%1$s (collegamento)</string>
+    <string name="settings_show_directory_item_count_title">Mostra il numero di elementi nelle cartelle</string>
+    <string name="settings_show_directory_item_count_summary">Per le cartelle su questo dispositivo</string>
+    <plurals name="file_item_directory_item_count_format">
+        <item quantity="one">%1$d elemento</item>
+        <item quantity="many">%1$d elementi</item>
+        <item quantity="other">%1$d elementi</item>
+    </plurals>
 </resources>

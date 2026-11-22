@@ -101,4 +101,6 @@
     <bool name="pref_default_value_trash_enabled">true</bool>
     <string name="pref_key_trash_retention_days">key_trash_retention_days</string>
     <integer name="pref_default_value_trash_retention_days">30</integer>
+    <string name="pref_key_file_list_show_directory_item_count">key_file_list_show_directory_item_count</string>
+    <bool name="pref_default_value_file_list_show_directory_item_count">true</bool>
 </resources>
