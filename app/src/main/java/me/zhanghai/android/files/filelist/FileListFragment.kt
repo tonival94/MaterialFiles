@@ -761,10 +761,29 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     private fun updateAdapterFileList() {
         var files = viewModel.fileListStateful.value ?: return
+        val isSearching = viewModel.searchState.isSearching
         if (!Settings.FILE_LIST_SHOW_HIDDEN_FILES.valueCompat) {
-            files = files.filterNot { it.isHidden }
+            val currentPath = viewModel.currentPath
+            // Search results can come from inside hidden directories, which should stay hidden
+            // as well.
+            files = files.filterNot {
+                it.isHidden || (isSearching && it.path.isInHiddenDirectoryUnder(currentPath))
+            }
         }
-        adapter.replaceListAndIsSearching(files, viewModel.searchState.isSearching)
+        adapter.replaceListAndIsSearching(files, isSearching)
+    }
+
+    private fun Path.isInHiddenDirectoryUnder(directory: Path): Boolean {
+        if (!startsWith(directory)) {
+            return false
+        }
+        val relativePath = directory.relativize(this)
+        for (index in 0..<relativePath.nameCount - 1) {
+            if (relativePath.getName(index).toString().startsWith(".")) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun updateShowHiddenFilesMenuItem() {
