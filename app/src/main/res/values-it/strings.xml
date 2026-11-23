@@ -723,4 +723,12 @@
     <string name="trash_delete_permanently">Elimina definitivamente</string>
     <string name="trash_move_to_trash">Sposta nel cestino</string>
     <string name="trash_delete_permanently_message">I file nel cestino vengono eliminati definitivamente.</string>
+    <string name="batch_rename_title_format">Rinomina %1$d elementi</string>
+    <string name="batch_rename_pattern">Nuovo nome</string>
+    <string name="batch_rename_pattern_helper">{name} = nome originale, {n} = numero</string>
+    <string name="batch_rename_start_number">Numero iniziale</string>
+    <string name="batch_rename_find">Cerca</string>
+    <string name="batch_rename_replace">Sostituisci con</string>
+    <string name="batch_rename_keep_extension">Mantieni l’estensione</string>
+    <string name="batch_rename_error_duplicate">Alcuni nuovi nomi sono uguali</string>
 </resources>

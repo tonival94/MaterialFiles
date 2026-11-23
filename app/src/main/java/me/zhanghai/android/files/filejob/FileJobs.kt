@@ -1570,6 +1570,52 @@ private fun FileJob.open(
     )
 }
 
+/**
+ * Renames [paths] to [newNames] in one go. Files whose new name is currently taken by another file
+ * of the batch (e.g. when swapping names), or that only change letter case, first get a temporary
+ * name.
+ */
+class BatchRenameFileJob(
+    private val paths: List<Path>,
+    private val newNames: List<String>
+) : FileJob() {
+    @Throws(IOException::class)
+    override fun run() {
+        require(paths.size == newNames.size)
+        val sourcePaths = paths.toSet()
+        val currentPaths = paths.toMutableList()
+        val targetPaths = paths.mapIndexed { index, path -> path.resolveSibling(newNames[index]) }
+        // First pass: move out of the way the files whose target is another file of the batch.
+        for (index in paths.indices) {
+            val path = paths[index]
+            val targetPath = targetPaths[index]
+            if (targetPath == path) {
+                continue
+            }
+            val isCaseOnlyChange = path.fileName.toString()
+                .equals(targetPath.fileName.toString(), ignoreCase = true)
+            if (targetPath in sourcePaths || isCaseOnlyChange) {
+                // Not a hidden name, so that the file stays visible if the job is interrupted.
+                val temporaryPath = path.resolveSibling(
+                    "${path.fileName}.rename-${System.currentTimeMillis()}-$index.tmp"
+                )
+                rename(path, temporaryPath)
+                currentPaths[index] = temporaryPath
+                throwIfInterrupted()
+            }
+        }
+        // Second pass: give every file its final name.
+        for (index in paths.indices) {
+            val currentPath = currentPaths[index]
+            val targetPath = targetPaths[index]
+            if (currentPath != targetPath) {
+                rename(currentPath, targetPath)
+            }
+            throwIfInterrupted()
+        }
+    }
+}
+
 /** Moves items out of the trash, back to where they were deleted from. */
 class RestoreFromTrashJob(private val paths: List<Path>) : FileJob() {
     @Throws(IOException::class)
