@@ -1,6 +1,6 @@
 # Material Files (tonival94 fork)
 
-This is a fork of [Material Files](https://github.com/zhanghai/MaterialFiles) by Hai Zhang, **maintained by [tonival94](https://github.com/tonival94)**. It is not affiliated with or endorsed by the original author. Please don't report problems of this fork to the original project.
+This is a fork of [Material Files](https://github.com/zhanghai/MaterialFiles) by Hai Zhang, **maintained by [tonival94](https://github.com/tonival94)**. It is not affiliated with or endorsed by the original author. Report problems and requests in [this repository's issues](https://github.com/tonival94/MaterialFiles/issues), not to the original project.
 
 The fork collects bug fixes and features that were proposed for the original app but not merged, plus its own fixes and features. Credit for the integrated pull requests goes to their authors; each one keeps its original author in the history.
 
