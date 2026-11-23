@@ -162,6 +162,11 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
         }
 
     private fun confirmDelete() {
+        // Moving to the trash can be undone, so it needs no confirmation.
+        if (Trash.isEnabled && Trash.canMoveToTrash(currentPath)) {
+            delete(currentPath)
+            return
+        }
         ConfirmDeleteDialogFragment.show(currentPath, this)
     }
 

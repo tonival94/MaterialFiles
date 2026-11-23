@@ -78,6 +78,18 @@ object Trash {
         }
     }
 
+    /**
+     * Creates the trash directories if needed, e.g. before opening the trash for the first time.
+     * Does I/O, so it must not be called on the main thread.
+     */
+    fun ensureCreated() {
+        try {
+            ensureDirectories()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     /** Whether [path] can be moved to the trash, instead of being deleted right away. */
     fun canMoveToTrash(path: Path): Boolean {
         if (!path.isLinuxPath) {
