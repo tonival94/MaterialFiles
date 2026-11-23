@@ -17,16 +17,21 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.viewpager2.widget.ViewPager2
 import dev.chrisbanes.insetter.applySystemWindowInsetsToPadding
 import java8.nio.file.Path
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.WriteWith
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.databinding.ImageViewerFragmentBinding
 import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.provider.common.delete
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.ui.DepthPageTransformer
 import me.zhanghai.android.files.util.ParcelableArgs
 import me.zhanghai.android.files.util.ParcelableListParceler
@@ -161,14 +166,34 @@ class ImageViewerFragment : Fragment(), ConfirmDeleteDialogFragment.Listener {
     }
 
     override fun delete(path: Path) {
-        try {
-            // The image viewer only deletes files, se we pass isDirectory=false
-            path.delete(false)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            showToast(e.toString())
-            return
+        // Deleting may need network access (e.g. SMB or WebDAV), which isn't allowed on the main
+        // thread.
+        viewLifecycleOwner.lifecycleScope.launch {
+            val exception = withContext(Dispatchers.IO) {
+                try {
+                    if (Trash.isEnabled && Trash.canMoveToTrash(path)) {
+                        Trash.moveToTrash(path)
+                    } else {
+                        // The image viewer only deletes files, se we pass isDirectory=false
+                        path.delete(false)
+                    }
+                    null
+                } catch (e: IOException) {
+                    e
+                } catch (e: RuntimeException) {
+                    e
+                }
+            }
+            if (exception != null) {
+                exception.printStackTrace()
+                showToast(exception.toString())
+                return@launch
+            }
+            onDeleted(path)
         }
+    }
+
+    private fun onDeleted(path: Path) {
         paths.removeAll(listOf(path))
         if (paths.isEmpty()) {
             finish()

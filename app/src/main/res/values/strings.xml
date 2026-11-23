@@ -837,4 +837,14 @@
     <string name="shortcut_downloads_title" translatable="false">@string/navigation_standard_directory_downloads</string>
     <string name="shortcut_ftp_server_title" translatable="false">@string/ftp_server_title</string>
     <string name="shortcut_recent_files_title" translatable="false">@string/navigation_recent_files</string>
+    <string name="settings_trash_enabled_title">Use trash</string>
+    <string name="settings_trash_enabled_summary">Move deleted files on internal storage to the trash, so that they can be restored</string>
+    <string name="settings_trash_retention_days_title">Days to keep files in the trash (0 = forever)</string>
+    <string name="navigation_trash">Trash</string>
+    <string name="trash_action_restore">Restore</string>
+    <string name="trash_action_empty">Empty trash</string>
+    <string name="trash_empty_message">Permanently delete all files in the trash?</string>
+    <string name="trash_delete_permanently">Delete permanently</string>
+    <string name="trash_move_to_trash">Move to trash</string>
+    <string name="trash_delete_permanently_message">Files in the trash are deleted permanently.</string>
 </resources>

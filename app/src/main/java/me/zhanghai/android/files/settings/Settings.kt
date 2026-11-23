@@ -91,6 +91,17 @@ object Settings {
             R.string.pref_key_ftp_server_password, R.string.pref_default_value_empty
         )
 
+    val TRASH_ENABLED: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(
+            R.string.pref_key_trash_enabled, R.bool.pref_default_value_trash_enabled
+        )
+
+    val TRASH_RETENTION_DAYS: SettingLiveData<Int> =
+        IntegerSettingLiveData(
+            R.string.pref_key_trash_retention_days,
+            R.integer.pref_default_value_trash_retention_days
+        )
+
     val FTP_SERVER_PORT: SettingLiveData<Int> =
         IntegerSettingLiveData(
             R.string.pref_key_ftp_server_port, R.integer.pref_default_value_ftp_server_port
