@@ -39,6 +39,7 @@ import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.common.isEncrypted
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.settings.Settings
+import me.zhanghai.android.files.trash.Trash
 import me.zhanghai.android.files.ui.AnimatedListAdapter
 import me.zhanghai.android.files.ui.CheckableForegroundLinearLayout
 import me.zhanghai.android.files.ui.CheckableItemBackground
@@ -507,6 +508,7 @@ class FileListAdapter(
             .setTitle(if (isArchivePath) R.string.file_item_action_extract else R.string.copy)
         menu.findItem(R.id.action_delete).isVisible = !isReadOnly
         menu.findItem(R.id.action_rename).isVisible = !isReadOnly
+        menu.findItem(R.id.action_restore).isVisible = Trash.isTrashedItem(path)
         menu.findItem(R.id.action_create_symbolic_link).isVisible =
             !isReadOnly && !hasPickOptions && !path.isArchivePath
         menu.findItem(R.id.action_extract).isVisible = file.isArchiveFile
@@ -548,6 +550,10 @@ class FileListAdapter(
                 }
                 R.id.action_copy_path -> {
                     listener.copyPath(file)
+                    true
+                }
+                R.id.action_restore -> {
+                    listener.restoreFromTrash(file)
                     true
                 }
                 R.id.action_create_symbolic_link -> {
@@ -665,6 +671,7 @@ class FileListAdapter(
         fun shareFile(file: FileItem)
         fun copyPath(file: FileItem)
         fun showCreateSymbolicLinkDialog(file: FileItem)
+        fun restoreFromTrash(file: FileItem)
         fun addBookmark(file: FileItem)
         fun createShortcut(file: FileItem)
         fun showPropertiesDialog(file: FileItem)

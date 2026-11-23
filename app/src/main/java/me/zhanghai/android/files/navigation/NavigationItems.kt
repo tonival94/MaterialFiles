@@ -7,8 +7,11 @@ package me.zhanghai.android.files.navigation
 
 import android.content.Context
 import android.content.Intent
+import android.os.AsyncTask
 import android.os.Build
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.os.storage.StorageVolume
 import androidx.annotation.DrawableRes
 import androidx.annotation.Size
@@ -266,8 +269,12 @@ private class TrashItem : NavigationItem() {
         !listener.isRecentFiles && listener.currentPath == Trash.filesDirectory
 
     override fun onClick(listener: Listener) {
-        listener.navigateTo(Trash.filesDirectory)
         listener.closeNavigationDrawer()
+        // The trash may not exist yet, e.g. if storage access was granted after the app started.
+        AsyncTask.THREAD_POOL_EXECUTOR.execute {
+            Trash.ensureCreated()
+            Handler(Looper.getMainLooper()).post { listener.navigateTo(Trash.filesDirectory) }
+        }
     }
 }
 

@@ -877,4 +877,5 @@
         <item quantity="other">Imported %1$d servers</item>
     </plurals>
     <string name="settings_import_servers_error">This file isn’t a server export</string>
+    <string name="trash_moved_to_trash">Moved to trash</string>
 </resources>
