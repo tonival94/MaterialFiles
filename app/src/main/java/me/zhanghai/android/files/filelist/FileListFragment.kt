@@ -942,6 +942,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         clipboardManager.copyText(path.toUserFriendlyString(), requireContext())
     }
 
+    private fun copyPaths(files: FileItemSet) {
+        // One path per line, in the order they are shown.
+        val text = sortedForBatchRename(files).joinToString("\n") {
+            it.path.toUserFriendlyString()
+        }
+        clipboardManager.copyText(text, requireContext())
+    }
+
     /** Returns [files] in the order they are shown in the list. */
     private fun sortedForBatchRename(files: FileItemSet): List<FileItem> {
         val shownFiles = adapter.list
@@ -1154,6 +1162,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 } else {
                     BatchRenameDialogFragment.show(sortedForBatchRename(files), this)
                 }
+                true
+            }
+            R.id.action_copy_path -> {
+                copyPaths(viewModel.selectedFiles)
                 true
             }
             R.id.action_extract -> {
