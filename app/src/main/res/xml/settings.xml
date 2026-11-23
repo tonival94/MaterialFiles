@@ -146,4 +146,19 @@
             android:title="@string/settings_read_remote_files_for_thumbnail_title"
             android:defaultValue="@bool/pref_default_value_read_remote_files_for_thumbnail" />
     </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/settings_servers_title">
+
+        <Preference
+            android:key="@string/pref_key_export_servers"
+            android:title="@string/settings_export_servers_title"
+            android:summary="@string/settings_export_servers_summary"
+            android:persistent="false" />
+
+        <Preference
+            android:key="@string/pref_key_import_servers"
+            android:title="@string/settings_import_servers_title"
+            android:summary="@string/settings_import_servers_summary"
+            android:persistent="false" />
+    </PreferenceCategory>
 </PreferenceScreen>
