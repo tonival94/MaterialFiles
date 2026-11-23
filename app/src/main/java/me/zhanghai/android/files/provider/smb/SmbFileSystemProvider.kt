@@ -45,7 +45,9 @@ import me.zhanghai.android.files.provider.smb.client.FileInformation
 import me.zhanghai.android.files.provider.smb.client.SymbolicLinkReparseData
 import me.zhanghai.android.files.util.enumSetOf
 import me.zhanghai.android.files.util.takeIfNotEmpty
+import java.io.BufferedOutputStream
 import java.io.IOException
+import java.io.OutputStream
 import java.net.URI
 
 object SmbFileSystemProvider : FileSystemProvider(), PathObservableProvider, Searchable {
@@ -130,6 +132,13 @@ object SmbFileSystemProvider : FileSystemProvider(), PathObservableProvider, Sea
         file as? SmbPath ?: throw ProviderMismatchException(file.toString())
         throw UnsupportedOperationException()
     }
+
+    // Every write to the channel is a synchronous round trip to the server, and callers usually
+    // write small chunks (e.g. 16 KiB when copying), which limits the speed to a few MB/s on Wi-Fi.
+    // Buffer writes so that each round trip carries a large chunk.
+    @Throws(IOException::class)
+    override fun newOutputStream(file: Path, vararg options: OpenOption): OutputStream =
+        BufferedOutputStream(super.newOutputStream(file, *options), WRITE_BUFFER_SIZE)
 
     @Throws(IOException::class)
     override fun newByteChannel(
@@ -400,3 +409,5 @@ object SmbFileSystemProvider : FileSystemProvider(), PathObservableProvider, Sea
         WalkFileTreeSearchable.search(directory, query, intervalMillis, listener)
     }
 }
+
+private const val WRITE_BUFFER_SIZE = 1024 * 1024
