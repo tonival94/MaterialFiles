@@ -855,4 +855,6 @@
     <string name="batch_rename_replace">Replace with</string>
     <string name="batch_rename_keep_extension">Keep extension</string>
     <string name="batch_rename_error_duplicate">Some new names are the same</string>
+    <string name="file_create_symbolic_link_title">Create symbolic link</string>
+    <string name="file_create_symbolic_link_name_format">%1$s (link)</string>
 </resources>

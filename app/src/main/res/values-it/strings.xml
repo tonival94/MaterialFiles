@@ -731,4 +731,6 @@
     <string name="batch_rename_replace">Sostituisci con</string>
     <string name="batch_rename_keep_extension">Mantieni l’estensione</string>
     <string name="batch_rename_error_duplicate">Alcuni nuovi nomi sono uguali</string>
+    <string name="file_create_symbolic_link_title">Crea collegamento simbolico</string>
+    <string name="file_create_symbolic_link_name_format">%1$s (collegamento)</string>
 </resources>

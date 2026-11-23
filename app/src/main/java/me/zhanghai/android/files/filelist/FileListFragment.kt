@@ -142,6 +142,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     ConfirmReplaceFileDialogFragment.Listener, OpenApkDialogFragment.Listener,
     ConfirmDeleteFilesDialogFragment.Listener, CreateArchiveDialogFragment.Listener,
     RenameFileDialogFragment.Listener, BatchRenameDialogFragment.Listener,
+    CreateSymbolicLinkDialogFragment.Listener,
     CreateFileDialogFragment.Listener,
     CreateDirectoryDialogFragment.Listener, NavigateToPathDialogFragment.Listener,
     NavigationFragment.Listener, ShowRequestAllFilesAccessRationaleDialogFragment.Listener,
@@ -1638,6 +1639,15 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     override fun copyPath(file: FileItem) {
         copyPath(file.path)
+    }
+
+    override fun showCreateSymbolicLinkDialog(file: FileItem) {
+        CreateSymbolicLinkDialogFragment.show(file, this)
+    }
+
+    override fun createSymbolicLink(file: FileItem, name: String) {
+        val link = currentPath.resolve(name)
+        FileJobService.createSymbolicLink(link, file.path, requireContext())
     }
 
     override fun addBookmark(file: FileItem) {
