@@ -91,6 +91,12 @@ object Settings {
             R.string.pref_key_ftp_server_password, R.string.pref_default_value_empty
         )
 
+    val FILE_LIST_SHOW_DIRECTORY_ITEM_COUNT: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(
+            R.string.pref_key_file_list_show_directory_item_count,
+            R.bool.pref_default_value_file_list_show_directory_item_count
+        )
+
     val TRASH_ENABLED: SettingLiveData<Boolean> =
         BooleanSettingLiveData(
             R.string.pref_key_trash_enabled, R.bool.pref_default_value_trash_enabled

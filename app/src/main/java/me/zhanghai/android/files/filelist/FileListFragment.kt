@@ -412,6 +412,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         Settings.FILE_LIST_DENSE_LAYOUT.observe(viewLifecycleOwner) { onDenseLayoutChanged(it) }
         viewModel.pasteStateLiveData.observe(viewLifecycleOwner) { onPasteStateChanged(it) }
         Settings.FILE_NAME_ELLIPSIZE.observe(viewLifecycleOwner) { onFileNameEllipsizeChanged(it) }
+        Settings.FILE_LIST_SHOW_DIRECTORY_ITEM_COUNT.observe(viewLifecycleOwner) {
+            adapter.notifyItemRangeChanged(0, adapter.itemCount)
+        }
         viewModel.fileListLiveData.observe(viewLifecycleOwner) { onFileListChanged(it) }
         Settings.FILE_LIST_SHOW_HIDDEN_FILES.observe(viewLifecycleOwner) {
             onShowHiddenFilesChanged(it)
