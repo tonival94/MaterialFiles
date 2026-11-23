@@ -49,6 +49,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.leinardi.android.speeddial.SpeedDialView
+import java8.nio.file.AccessDeniedException
+import java8.nio.file.NoSuchFileException
 import java8.nio.file.Path
 import java8.nio.file.Paths
 import kotlin.math.roundToInt
@@ -616,7 +618,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         val throwable = (stateful as? Failure)?.throwable
         if (throwable != null) {
             throwable.printStackTrace()
-            val error = throwable.toString()
+            val error = throwable.toUserMessage()
+            // The current directory was deleted (or a stale breadcrumb was tapped): go back to its
+            // parent instead of staying in a directory that no longer exists.
+            if (throwable is NoSuchFileException && !isSearching
+                && throwable.file == viewModel.currentPath.toString() && viewModel.navigateUp()) {
+                showToast(error)
+                return
+            }
             if (hasFiles) {
                 showToast(error)
             } else {
@@ -772,6 +781,16 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         adapter.replaceListAndIsSearching(files, isSearching)
     }
+
+    private fun Throwable.toUserMessage(): String =
+        when (this) {
+            is NoSuchFileException -> getString(R.string.file_list_error_not_found)
+            is AccessDeniedException -> getString(R.string.file_list_error_access_denied)
+            // E.g. a content:// URI from another app's FileProvider, which can't be listed.
+            is UnsupportedOperationException ->
+                getString(R.string.file_list_error_not_a_browsable_directory)
+            else -> toString()
+        }
 
     private fun Path.isInHiddenDirectoryUnder(directory: Path): Boolean {
         if (!startsWith(directory)) {

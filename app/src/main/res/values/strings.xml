@@ -266,6 +266,9 @@
 
     <string name="file_list_title">Files</string>
     <string name="file_list_archive_read_only">Archives are read-only</string>
+    <string name="file_list_error_not_found">This file or folder no longer exists</string>
+    <string name="file_list_error_access_denied">Access denied</string>
+    <string name="file_list_error_not_a_browsable_directory">This location can’t be opened as a folder</string>
     <plurals name="file_list_title_open_file">
         <item quantity="one">Select a file</item>
         <item quantity="other">Select files</item>
