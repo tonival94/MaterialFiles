@@ -709,4 +709,7 @@
     <string name="about_author_name_title">Hai Zhang</string>
     <string name="about_author_github_title">Segui su GitHub</string>
     <string name="about_author_twitter_title">Segui su Twitter</string>
+    <string name="navigation_recent_files">File recenti</string>
+    <string name="settings_show_recent_files_title">Mostra file recenti</string>
+    <string name="settings_show_recent_files_summary">I file modificati più di recente su questo dispositivo</string>
 </resources>
