@@ -65,6 +65,7 @@ import me.zhanghai.android.files.provider.common.copyTo
 import me.zhanghai.android.files.provider.common.createDirectories
 import me.zhanghai.android.files.provider.common.createDirectory
 import me.zhanghai.android.files.provider.common.createFile
+import me.zhanghai.android.files.provider.common.createSymbolicLink
 import me.zhanghai.android.files.provider.common.delete
 import me.zhanghai.android.files.provider.common.deleteIfExists
 import me.zhanghai.android.files.provider.common.exists
@@ -939,6 +940,45 @@ private fun FileJob.create(path: Path, createDirectory: Boolean) {
             }
         }
     } while (retry)
+}
+
+class CreateSymbolicLinkJob(private val link: Path, private val target: Path) : FileJob() {
+    @Throws(IOException::class)
+    override fun run() {
+        var retry: Boolean
+        do {
+            retry = false
+            try {
+                try {
+                    link.createSymbolicLink(target)
+                } catch (e: UnsupportedOperationException) {
+                    throw IOException(e)
+                }
+            } catch (e: InterruptedIOException) {
+                throw e
+            } catch (e: IOException) {
+                e.printStackTrace()
+                val result = showErrorDialog(
+                    getString(R.string.file_job_create_error_title),
+                    getString(
+                        R.string.file_job_create_error_message_format, getFileName(link),
+                        e.toString()
+                    ),
+                    getReadOnlyFileStore(link, e),
+                    false,
+                    getString(R.string.retry),
+                    getString(android.R.string.cancel),
+                    null
+                )
+                when (result.action) {
+                    FileJobErrorAction.POSITIVE -> retry = true
+                    FileJobErrorAction.NEGATIVE, FileJobErrorAction.CANCELED ->
+                        throw InterruptedIOException()
+                    else -> throw AssertionError(result.action)
+                }
+            }
+        } while (retry)
+    }
 }
 
 /**

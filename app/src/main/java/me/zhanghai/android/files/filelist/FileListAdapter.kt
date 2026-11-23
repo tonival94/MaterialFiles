@@ -449,6 +449,8 @@ class FileListAdapter(
             .setTitle(if (isArchivePath) R.string.file_item_action_extract else R.string.copy)
         menu.findItem(R.id.action_delete).isVisible = !isReadOnly
         menu.findItem(R.id.action_rename).isVisible = !isReadOnly
+        menu.findItem(R.id.action_create_symbolic_link).isVisible =
+            !isReadOnly && !hasPickOptions && !path.isArchivePath
         menu.findItem(R.id.action_extract).isVisible = file.isArchiveFile
         menu.findItem(R.id.action_archive).isVisible = !isArchivePath
         menu.findItem(R.id.action_add_bookmark).isVisible = isDirectory
@@ -488,6 +490,10 @@ class FileListAdapter(
                 }
                 R.id.action_copy_path -> {
                     listener.copyPath(file)
+                    true
+                }
+                R.id.action_create_symbolic_link -> {
+                    listener.showCreateSymbolicLinkDialog(file)
                     true
                 }
                 R.id.action_add_bookmark -> {
@@ -597,6 +603,7 @@ class FileListAdapter(
         fun showCreateArchiveDialog(file: FileItem)
         fun shareFile(file: FileItem)
         fun copyPath(file: FileItem)
+        fun showCreateSymbolicLinkDialog(file: FileItem)
         fun addBookmark(file: FileItem)
         fun createShortcut(file: FileItem)
         fun showPropertiesDialog(file: FileItem)
