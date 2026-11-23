@@ -1,3 +1,56 @@
+# Material Files (tonival94 fork)
+
+This is a fork of [Material Files](https://github.com/zhanghai/MaterialFiles) by Hai Zhang, **maintained by [tonival94](https://github.com/tonival94)**. It is not affiliated with or endorsed by the original author. Please don't report problems of this fork to the original project.
+
+The fork collects bug fixes and features that were proposed for the original app but not merged, plus its own fixes and features. Credit for the integrated pull requests goes to their authors; each one keeps its original author in the history.
+
+## Download
+
+Signed APKs are published in [Releases](https://github.com/tonival94/MaterialFiles/releases), and can be installed and updated with [Obtainium](https://github.com/ImranR98/Obtainium) using `https://github.com/tonival94/MaterialFiles`.
+
+- **Application ID** `me.zhanghai.android.files.tonival94`: as the original README asks, the fork uses its own package name, so it installs next to the official app instead of conflicting with it.
+- **No Google services**: release builds don't include Firebase (analytics and crash reporting), like the F-Droid build of the original.
+
+## Changes from the original
+
+### Integrated pull requests from the original repository
+
+- Fix data loss when "Save as" overwrites the source file itself: [#1676](https://github.com/zhanghai/MaterialFiles/pull/1676) (fixes [#1664](https://github.com/zhanghai/MaterialFiles/issues/1664))
+- SSH host key verification, instead of accepting any server: [#1579](https://github.com/zhanghai/MaterialFiles/pull/1579) (fixes [#544](https://github.com/zhanghai/MaterialFiles/issues/544))
+- Clearing the search text refreshes the file list: [#1517](https://github.com/zhanghai/MaterialFiles/pull/1517)
+- WebDAV: delete and move directories correctly: [#1535](https://github.com/zhanghai/MaterialFiles/pull/1535)
+- Respect dismissal of the notification permission reminder: [#1640](https://github.com/zhanghai/MaterialFiles/pull/1640) (fixes [#1643](https://github.com/zhanghai/MaterialFiles/issues/1643), [#1650](https://github.com/zhanghai/MaterialFiles/issues/1650))
+- Remove the advertising ID permission: [#985](https://github.com/zhanghai/MaterialFiles/pull/985)
+- Readable message when creating a file inside an archive: [#1515](https://github.com/zhanghai/MaterialFiles/pull/1515)
+- Denser file list layout: [#1264](https://github.com/zhanghai/MaterialFiles/pull/1264) ([#236](https://github.com/zhanghai/MaterialFiles/issues/236), [#1602](https://github.com/zhanghai/MaterialFiles/issues/1602), [#1084](https://github.com/zhanghai/MaterialFiles/issues/1084))
+- Better file names and configurable grid columns: [#1525](https://github.com/zhanghai/MaterialFiles/pull/1525) ([#1494](https://github.com/zhanghai/MaterialFiles/issues/1494), [#1028](https://github.com/zhanghai/MaterialFiles/issues/1028), [#1363](https://github.com/zhanghai/MaterialFiles/issues/1363), [#1524](https://github.com/zhanghai/MaterialFiles/issues/1524), [#1545](https://github.com/zhanghai/MaterialFiles/issues/1545))
+- "Save as" for multiple shared files: [#1652](https://github.com/zhanghai/MaterialFiles/pull/1652) (fixes [#1646](https://github.com/zhanghai/MaterialFiles/issues/1646))
+- Markdown and code preview with syntax highlighting: [#1587](https://github.com/zhanghai/MaterialFiles/pull/1587), with the preview isolated from the network and local files
+- Faster SFTP uploads: [#1603](https://github.com/zhanghai/MaterialFiles/pull/1603) (performance part; [#1350](https://github.com/zhanghai/MaterialFiles/issues/1350), [#1528](https://github.com/zhanghai/MaterialFiles/issues/1528), [#895](https://github.com/zhanghai/MaterialFiles/issues/895))
+- Recent files in the navigation drawer, can be turned off: [#1631](https://github.com/zhanghai/MaterialFiles/pull/1631) ([#146](https://github.com/zhanghai/MaterialFiles/issues/146), [#1637](https://github.com/zhanghai/MaterialFiles/issues/1637), [#1433](https://github.com/zhanghai/MaterialFiles/issues/1433), [#1556](https://github.com/zhanghai/MaterialFiles/issues/1556), [#1607](https://github.com/zhanghai/MaterialFiles/issues/1607), [#1117](https://github.com/zhanghai/MaterialFiles/issues/1117), [#1443](https://github.com/zhanghai/MaterialFiles/issues/1443))
+- "Open in terminal" with Termux: [#1671](https://github.com/zhanghai/MaterialFiles/pull/1671) ([#901](https://github.com/zhanghai/MaterialFiles/issues/901), [#1620](https://github.com/zhanghai/MaterialFiles/issues/1620), [#905](https://github.com/zhanghai/MaterialFiles/issues/905), [#1465](https://github.com/zhanghai/MaterialFiles/issues/1465), [#1318](https://github.com/zhanghai/MaterialFiles/issues/1318), [#888](https://github.com/zhanghai/MaterialFiles/issues/888))
+- SMB3 session encryption: [#1665](https://github.com/zhanghai/MaterialFiles/pull/1665) (fixes [#486](https://github.com/zhanghai/MaterialFiles/issues/486))
+
+### Fixes and features of this fork
+
+- **Encrypted server credentials**: SMB, FTP, SFTP and WebDAV credentials are encrypted with a key in the Android Keystore, and saved passwords can no longer be revealed when editing a server ([#1302](https://github.com/zhanghai/MaterialFiles/issues/1302), [#1366](https://github.com/zhanghai/MaterialFiles/issues/1366), [#971](https://github.com/zhanghai/MaterialFiles/issues/971))
+- **Faster writes to SMB servers**, sent in 1 MiB chunks instead of 16 KiB ([#1486](https://github.com/zhanghai/MaterialFiles/issues/1486), [#1588](https://github.com/zhanghai/MaterialFiles/issues/1588), [#796](https://github.com/zhanghai/MaterialFiles/issues/796))
+- **Trash** for internal storage, with restore and automatic cleanup after a configurable number of days ([#276](https://github.com/zhanghai/MaterialFiles/issues/276), [#1430](https://github.com/zhanghai/MaterialFiles/issues/1430), [#931](https://github.com/zhanghai/MaterialFiles/issues/931), [#897](https://github.com/zhanghai/MaterialFiles/issues/897))
+- **Batch rename** of multiple selected files, with patterns, numbering and find and replace ([#278](https://github.com/zhanghai/MaterialFiles/issues/278), [#893](https://github.com/zhanghai/MaterialFiles/issues/893), [#1570](https://github.com/zhanghai/MaterialFiles/issues/1570), [#1432](https://github.com/zhanghai/MaterialFiles/issues/1432))
+- **Long press and drag selection** of ranges, in list and grid, replacing [#1091](https://github.com/zhanghai/MaterialFiles/pull/1091)
+- **Copy paths** of multiple selected files ([#1619](https://github.com/zhanghai/MaterialFiles/issues/1619))
+- **Number of items** shown under local folders, can be turned off ([#331](https://github.com/zhanghai/MaterialFiles/issues/331), [#1024](https://github.com/zhanghai/MaterialFiles/issues/1024), [#1136](https://github.com/zhanghai/MaterialFiles/issues/1136), [#1549](https://github.com/zhanghai/MaterialFiles/issues/1549), [#1666](https://github.com/zhanghai/MaterialFiles/issues/1666))
+- **Create symbolic links** ([#702](https://github.com/zhanghai/MaterialFiles/issues/702))
+- **Export and import network servers**, without passwords ([#523](https://github.com/zhanghai/MaterialFiles/issues/523), [#1327](https://github.com/zhanghai/MaterialFiles/issues/1327), [#1559](https://github.com/zhanghai/MaterialFiles/issues/1559))
+- Renaming a file when only the letter case changes ([#1208](https://github.com/zhanghai/MaterialFiles/issues/1208))
+- Search results inside hidden folders stay hidden ([#1128](https://github.com/zhanghai/MaterialFiles/issues/1128))
+- Readable error messages, and going back when the current folder no longer exists ([#1613](https://github.com/zhanghai/MaterialFiles/issues/1613), [#1530](https://github.com/zhanghai/MaterialFiles/issues/1530))
+- Deleting images from the image viewer on SMB and WebDAV ([#1472](https://github.com/zhanghai/MaterialFiles/issues/1472), [#1538](https://github.com/zhanghai/MaterialFiles/issues/1538))
+
+The rest of this page is the original README. Its download badges point to the original app, not to this fork.
+
+---
+
 # Material Files
 
 [本文中文版](README_zh-CN.md)
