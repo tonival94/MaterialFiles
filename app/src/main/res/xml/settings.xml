@@ -93,6 +93,19 @@
             android:defaultValue="@bool/pref_default_value_file_list_show_recent_files"
             android:summary="@string/settings_show_recent_files_summary" />
 
+        <SwitchPreferenceCompat
+            android:key="@string/pref_key_trash_enabled"
+            android:title="@string/settings_trash_enabled_title"
+            android:defaultValue="@bool/pref_default_value_trash_enabled"
+            android:summary="@string/settings_trash_enabled_summary" />
+
+        <me.zhanghai.android.files.settings.NonNegativeIntegerPreference
+            android:key="@string/pref_key_trash_retention_days"
+            android:title="@string/settings_trash_retention_days_title"
+            android:defaultValue="@integer/pref_default_value_trash_retention_days"
+            android:dependency="@string/pref_key_trash_enabled"
+            app:useSimpleSummaryProvider="true" />
+
         <me.zhanghai.android.files.settings.RootStrategyPreference
             android:key="@string/pref_key_root_strategy"
             android:title="@string/settings_root_strategy_title"
