@@ -137,6 +137,16 @@ class EditWebDavServerFragment : Fragment() {
             }
         }
 
+        when (val authentication = args.server?.authentication) {
+            is PasswordAuthentication ->
+                binding.passwordLayout.hideToggleWhileSavedSecretUnchanged(authentication.password)
+            is AccessTokenAuthentication ->
+                binding.accessTokenLayout.hideToggleWhileSavedSecretUnchanged(
+                    authentication.accessToken
+                )
+            else -> {}
+        }
+
         if (savedInstanceState == null) {
             val server = args.server
             if (server != null) {

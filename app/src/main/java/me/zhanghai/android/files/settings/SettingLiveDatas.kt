@@ -277,9 +277,12 @@ class ParcelValueSettingLiveData<T>(
     nameSuffix: String?,
     @StringRes keyRes: Int,
     keySuffix: String?,
-    private val defaultValue: T
+    private val defaultValue: T,
+    private val isEncrypted: Boolean = false
 ) : SettingLiveData<T>(nameSuffix, keyRes, keySuffix, 0) {
-    constructor(@StringRes keyRes: Int, defaultValue: T) : this(null, keyRes, null, defaultValue)
+    constructor(@StringRes keyRes: Int, defaultValue: T, isEncrypted: Boolean = false) : this(
+        null, keyRes, null, defaultValue, isEncrypted
+    )
 
     init {
         init()
@@ -291,33 +294,63 @@ class ParcelValueSettingLiveData<T>(
         sharedPreferences: SharedPreferences,
         key: String,
         defaultValue: T
-    ): T =
-        try {
-            sharedPreferences.getString(key, null)?.asBase64()?.toParcelValue()
+    ): T {
+        val string = sharedPreferences.getString(key, null) ?: return defaultValue
+        val isStoredEncrypted = string.startsWith(ENCRYPTED_PREFIX)
+        val value = try {
+            if (isStoredEncrypted) {
+                SettingsCipher.decrypt(
+                    string.substring(ENCRYPTED_PREFIX.length).asBase64().toByteArray()
+                ).toParcelValue()
+            } else {
+                string.asBase64().toByteArray().toParcelValue()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
-            null
-        } ?: defaultValue
-
-    override fun putValue(sharedPreferences: SharedPreferences, key: String, value: T) {
-        sharedPreferences.edit { putString(key, value?.toParcelBase64()?.value) }
+            return defaultValue
+        }
+        if (isEncrypted && !isStoredEncrypted) {
+            // Migrate a value saved before encryption was introduced.
+            putValue(sharedPreferences, key, value)
+        }
+        return value
     }
 
-    private fun Base64.toParcelValue(): T {
-        val bytes = toByteArray()
-        return Parcel.obtain().use { parcel ->
-            parcel.unmarshall(bytes, 0, bytes.size)
+    override fun putValue(sharedPreferences: SharedPreferences, key: String, value: T) {
+        val string = if (value == null) {
+            null
+        } else {
+            val bytes = value.toParcelBytes()
+            if (isEncrypted) {
+                try {
+                    ENCRYPTED_PREFIX + SettingsCipher.encrypt(bytes).toBase64().value
+                } catch (e: Exception) {
+                    // Never fall back to plain text for a setting that must be encrypted.
+                    e.printStackTrace()
+                    return
+                }
+            } else {
+                bytes.toBase64().value
+            }
+        }
+        sharedPreferences.edit { putString(key, string) }
+    }
+
+    private fun ByteArray.toParcelValue(): T =
+        Parcel.obtain().use { parcel ->
+            parcel.unmarshall(this, 0, size)
             parcel.setDataPosition(0)
             @Suppress("UNCHECKED_CAST")
             parcel.readValue(appClassLoader) as T
         }
-    }
 
-    private fun T.toParcelBase64(): Base64 {
-        val bytes = Parcel.obtain().use { parcel ->
+    private fun T.toParcelBytes(): ByteArray =
+        Parcel.obtain().use { parcel ->
             parcel.writeValue(this)
             parcel.marshall()
         }
-        return bytes.toBase64()
+
+    companion object {
+        private const val ENCRYPTED_PREFIX = "encrypted:"
     }
 }

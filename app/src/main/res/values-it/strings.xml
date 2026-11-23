@@ -535,6 +535,7 @@
     <string name="storage_edit_sftp_server_private_key_open_file">Apri file</string>
     <string name="storage_edit_sftp_server_private_key_error_empty">Inserisci una chiave privata</string>
     <string name="storage_edit_sftp_server_private_key_error_invalid">Chiave privata non valida</string>
+    <string name="storage_edit_sftp_server_private_key_saved_helper">Una chiave privata è salvata. Lascia vuoto per mantenerla.</string>
     <string name="storage_edit_sftp_server_private_key_password">Password chiave privata</string>
     <string name="storage_edit_sftp_server_private_key_password_placeholder">Può essere lasciata vuota</string>
     <string name="storage_edit_sftp_server_private_key_password_error_invalid">Password chiave privata non valida</string>
