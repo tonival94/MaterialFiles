@@ -740,4 +740,20 @@
         <item quantity="many">%1$d elementi</item>
         <item quantity="other">%1$d elementi</item>
     </plurals>
+    <string name="settings_servers_title">Server di rete</string>
+    <string name="settings_export_servers_title">Esporta server</string>
+    <string name="settings_export_servers_summary">Salva i server SMB, FTP, SFTP e WebDAV in un file, senza password</string>
+    <string name="settings_import_servers_title">Importa server</string>
+    <string name="settings_import_servers_summary">Aggiungi i server da un file esportato; le password vanno reinserite</string>
+    <plurals name="settings_export_servers_done_format">
+        <item quantity="one">%1$d server esportato</item>
+        <item quantity="many">%1$d server esportati</item>
+        <item quantity="other">%1$d server esportati</item>
+    </plurals>
+    <plurals name="settings_import_servers_done_format">
+        <item quantity="one">%1$d server importato</item>
+        <item quantity="many">%1$d server importati</item>
+        <item quantity="other">%1$d server importati</item>
+    </plurals>
+    <string name="settings_import_servers_error">Questo file non è un’esportazione di server</string>
 </resources>

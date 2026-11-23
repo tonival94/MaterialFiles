@@ -5,20 +5,56 @@
 
 package me.zhanghai.android.files.settings
 
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
+import androidx.preference.Preference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.zhanghai.android.files.R
+import me.zhanghai.android.files.storage.FtpServer
+import me.zhanghai.android.files.storage.ServerSettingsBackup
+import me.zhanghai.android.files.storage.SftpServer
+import me.zhanghai.android.files.storage.SmbServer
+import me.zhanghai.android.files.storage.WebDavServer
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper
 import me.zhanghai.android.files.theme.custom.ThemeColor
 import me.zhanghai.android.files.theme.night.NightMode
 import me.zhanghai.android.files.theme.night.NightModeHelper
 import me.zhanghai.android.files.ui.PreferenceFragmentCompat
+import me.zhanghai.android.files.util.getQuantityString
+import me.zhanghai.android.files.util.showToast
+import me.zhanghai.android.files.util.valueCompat
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     private lateinit var localePreference: LocalePreference
 
+    private val exportServersLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) {
+            it?.let { uri -> exportServers(uri) }
+        }
+
+    private val importServersLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) {
+            it?.let { uri -> importServers(uri) }
+        }
+
     override fun onCreatePreferencesFix(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.settings)
+
+        preferenceScreen.findPreference<Preference>(getString(R.string.pref_key_export_servers))!!
+            .setOnPreferenceClickListener {
+                exportServersLauncher.launch("material-files-servers.json")
+                true
+            }
+        preferenceScreen.findPreference<Preference>(getString(R.string.pref_key_import_servers))!!
+            .setOnPreferenceClickListener {
+                importServersLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
+                true
+            }
 
         localePreference = preferenceScreen.findPreference(getString(R.string.pref_key_locale))!!
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -46,6 +82,65 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         Settings.MATERIAL_DESIGN_3.observe(viewLifecycleOwner, this::onMaterialDesign3Changed)
         Settings.NIGHT_MODE.observe(viewLifecycleOwner, this::onNightModeChanged)
         Settings.BLACK_NIGHT_MODE.observe(viewLifecycleOwner, this::onBlackNightModeChanged)
+    }
+
+    private fun exportServers(uri: Uri) {
+        val storages = Settings.STORAGES.valueCompat
+        val context = requireContext().applicationContext
+        lifecycleScope.launch {
+            val count = storages.count {
+                it is SmbServer || it is FtpServer || it is SftpServer || it is WebDavServer
+            }
+            val result = withContext(Dispatchers.IO) {
+                try {
+                    val json = ServerSettingsBackup.export(storages)
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use {
+                        it.write(json.toByteArray())
+                    }
+                    null
+                } catch (e: Exception) {
+                    e
+                }
+            }
+            if (result != null) {
+                result.printStackTrace()
+                context.showToast(result.toString())
+            } else {
+                context.showToast(
+                    context.getQuantityString(
+                        R.plurals.settings_export_servers_done_format, count, count
+                    )
+                )
+            }
+        }
+    }
+
+    private fun importServers(uri: Uri) {
+        val context = requireContext().applicationContext
+        lifecycleScope.launch {
+            val imported = withContext(Dispatchers.IO) {
+                try {
+                    val json = context.contentResolver.openInputStream(uri)!!.use {
+                        it.readBytes().toString(Charsets.UTF_8)
+                    }
+                    ServerSettingsBackup.import(json)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+            if (imported == null) {
+                context.showToast(R.string.settings_import_servers_error)
+                return@launch
+            }
+            val storages = Settings.STORAGES.valueCompat
+            val merged = ServerSettingsBackup.merge(storages, imported)
+            val count = merged.size - storages.size
+            Settings.STORAGES.putValue(merged)
+            context.showToast(
+                context.getQuantityString(R.plurals.settings_import_servers_done_format, count, count)
+            )
+        }
     }
 
     private fun onThemeColorChanged(themeColor: ThemeColor) {
