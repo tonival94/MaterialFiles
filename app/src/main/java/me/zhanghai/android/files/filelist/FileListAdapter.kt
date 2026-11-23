@@ -77,6 +77,21 @@ class FileListAdapter(
 
     private val selectedFiles = fileItemSetOf()
 
+    private val dragSelectTouchListener = DragSelectTouchListener(
+        object : DragSelectTouchListener.Listener {
+            override fun onDragSelectionUpdate(position: Int) {
+                updateDragSelection(position)
+            }
+
+            override fun onDragSelectionEnd() {
+                endDragSelection()
+            }
+        }
+    )
+    private var dragAnchorPosition = RecyclerView.NO_POSITION
+    private var dragLastPosition = RecyclerView.NO_POSITION
+    private var dragInitialSelection: FileItemSet? = null
+
     private val filePositionMap = mutableMapOf<Path, Int>()
 
     private lateinit var _nameEllipsize: TextUtils.TruncateAt
@@ -126,6 +141,89 @@ class FileListAdapter(
             listener.clearSelectedFiles()
         }
         listener.selectFile(file, !selected)
+    }
+
+    /**
+     * Starts selecting a range by dragging from the item at [position]. Ranges add to the files
+     * that were already selected, so that several ranges can be selected one after another.
+     *
+     * @return whether drag selection has started.
+     */
+    private fun startDragSelection(position: Int): Boolean {
+        val pickOptions = pickOptions
+        if (pickOptions != null && !pickOptions.allowMultiple) {
+            return false
+        }
+        if (position !in 0..<itemCount || !isFileSelectable(getItem(position))) {
+            return false
+        }
+        dragInitialSelection = fileItemSetOf().apply { addAll(selectedFiles) }
+        dragAnchorPosition = position
+        dragLastPosition = position
+        val file = getItem(position)
+        if (file !in selectedFiles) {
+            listener.selectFile(file, true)
+        }
+        dragSelectTouchListener.startDrag(position)
+        return true
+    }
+
+    private fun updateDragSelection(position: Int) {
+        val initialSelection = dragInitialSelection ?: return
+        if (position !in 0..<itemCount || position == dragLastPosition) {
+            return
+        }
+        val oldRange = rangeOf(dragAnchorPosition, dragLastPosition)
+        val newRange = rangeOf(dragAnchorPosition, position)
+        val filesToSelect = fileItemSetOf()
+        for (index in newRange) {
+            if (index in oldRange) {
+                continue
+            }
+            val file = getItem(index)
+            if (isFileSelectable(file) && file !in selectedFiles) {
+                filesToSelect.add(file)
+            }
+        }
+        // Items leaving the range go back to the state they had before this drag.
+        val filesToUnselect = fileItemSetOf()
+        for (index in oldRange) {
+            if (index in newRange || index !in 0..<itemCount) {
+                continue
+            }
+            val file = getItem(index)
+            if (file !in initialSelection && file in selectedFiles) {
+                filesToUnselect.add(file)
+            }
+        }
+        dragLastPosition = position
+        if (filesToSelect.isNotEmpty()) {
+            listener.selectFiles(filesToSelect, true)
+        }
+        if (filesToUnselect.isNotEmpty()) {
+            listener.selectFiles(filesToUnselect, false)
+        }
+    }
+
+    private fun endDragSelection() {
+        dragInitialSelection = null
+        dragAnchorPosition = RecyclerView.NO_POSITION
+        dragLastPosition = RecyclerView.NO_POSITION
+    }
+
+    private fun rangeOf(start: Int, end: Int): IntRange =
+        if (start <= end) start..end else end..start
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+
+        dragSelectTouchListener.attach(recyclerView)
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+
+        dragSelectTouchListener.detach()
     }
 
     fun selectAllFiles() {
@@ -256,6 +354,11 @@ class FileListAdapter(
                 }
             }
             setOnLongClickListener {
+                // Long press and drag selects a range; with files already selected, it adds
+                // another range to the selection.
+                if (startDragSelection(holder.bindingAdapterPosition)) {
+                    return@setOnLongClickListener true
+                }
                 if (selectedFiles.isEmpty()) {
                     selectFile(file)
                 } else {
