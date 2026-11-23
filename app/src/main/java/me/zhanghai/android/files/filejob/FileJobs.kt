@@ -1543,6 +1543,27 @@ class RenameFileJob(private val path: Path, private val newName: String) : FileJ
     @Throws(IOException::class)
     override fun run() {
         val newPath = path.resolveSibling(newName)
+        val oldName = path.fileName?.toString()
+        if (oldName != null && oldName != newName && oldName.equals(newName, ignoreCase = true)) {
+            // On case-insensitive file systems (e.g. shared storage), renaming "a" to "A" resolves
+            // to the same file and is silently ignored, so go through a temporary name.
+            val temporaryPath = path.resolveSibling(
+                ".$oldName.rename-${System.currentTimeMillis()}.tmp"
+            )
+            rename(path, temporaryPath)
+            try {
+                moveAtomically(temporaryPath, newPath)
+            } catch (e: IOException) {
+                // Put the original name back before reporting the error.
+                try {
+                    moveAtomically(temporaryPath, path)
+                } catch (e2: IOException) {
+                    e.addSuppressed(e2)
+                }
+                throw e
+            }
+            return
+        }
         rename(path, newPath)
     }
 }
