@@ -141,7 +141,8 @@ import me.zhanghai.android.files.viewer.text.FileViewerEditorActivity
 class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.Listener,
     ConfirmReplaceFileDialogFragment.Listener, OpenApkDialogFragment.Listener,
     ConfirmDeleteFilesDialogFragment.Listener, CreateArchiveDialogFragment.Listener,
-    RenameFileDialogFragment.Listener, CreateFileDialogFragment.Listener,
+    RenameFileDialogFragment.Listener, BatchRenameDialogFragment.Listener,
+    CreateFileDialogFragment.Listener,
     CreateDirectoryDialogFragment.Listener, NavigateToPathDialogFragment.Listener,
     NavigationFragment.Listener, ShowRequestAllFilesAccessRationaleDialogFragment.Listener,
     ShowRequestNotificationPermissionRationaleDialogFragment.Listener,
@@ -941,6 +942,18 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         clipboardManager.copyText(path.toUserFriendlyString(), requireContext())
     }
 
+    /** Returns [files] in the order they are shown in the list. */
+    private fun sortedForBatchRename(files: FileItemSet): List<FileItem> {
+        val shownFiles = adapter.list
+        val positions = shownFiles.withIndex().associate { it.value.path to it.index }
+        return files.sortedBy { positions[it.path] ?: Int.MAX_VALUE }
+    }
+
+    override fun batchRenameFiles(files: List<FileItem>, newNames: List<String>) {
+        FileJobService.batchRename(files.map { it.path }, newNames, requireContext())
+        viewModel.selectFiles(fileItemSetOf(*files.toTypedArray()), false)
+    }
+
     override fun openInNewTask(path: Path) {
         val intent = FileListActivity.createViewIntent(path)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
@@ -1086,6 +1099,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             menu.findItem(R.id.action_preview).isVisible = areAllFilesPreviewable
             menu.findItem(R.id.action_restore).isVisible =
                 files.all { Trash.isTrashedItem(it.path) }
+            menu.findItem(R.id.action_rename).isVisible =
+                !isAnyFileReadOnly && !viewModel.searchState.isSearching && !viewModel.isRecentFiles &&
+                    files.all { it.path.parent == viewModel.currentPath }
         }
         if (!overlayActionMode.isActive) {
             binding.appBarLayout.setExpanded(true)
@@ -1129,6 +1145,15 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             }
             R.id.action_restore -> {
                 restoreFilesFromTrash(viewModel.selectedFiles)
+                true
+            }
+            R.id.action_rename -> {
+                val files = viewModel.selectedFiles
+                if (files.size == 1) {
+                    showRenameFileDialog(files.single())
+                } else {
+                    BatchRenameDialogFragment.show(sortedForBatchRename(files), this)
+                }
                 true
             }
             R.id.action_extract -> {
