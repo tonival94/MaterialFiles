@@ -1,14 +1,36 @@
 # Material Files (tonival94 fork)
 
+[![Android CI status](https://github.com/tonival94/MaterialFiles/workflows/Android%20CI/badge.svg)](https://github.com/tonival94/MaterialFiles/actions) [![GitHub release](https://img.shields.io/github/v/release/tonival94/MaterialFiles)](https://github.com/tonival94/MaterialFiles/releases) [![License](https://img.shields.io/github/license/tonival94/MaterialFiles?color=blue)](LICENSE)
+
+An open source Material Design file manager, for Android 6.0+.
+
 This is a fork of [Material Files](https://github.com/zhanghai/MaterialFiles) by Hai Zhang, **maintained by [tonival94](https://github.com/tonival94)**. It is not affiliated with or endorsed by the original author. Report problems and requests in [this repository's issues](https://github.com/tonival94/MaterialFiles/issues), not to the original project.
 
 The fork collects bug fixes and features that were proposed for the original app but not merged, plus its own fixes and features. Credit for the integrated pull requests goes to their authors; each one keeps its original author in the history.
+
+## Preview
+
+<p><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="32%" />
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="32%" /></p>
+
+## Features
+
+- Open source: Lightweight, clean and secure.
+- Material Design: Follows Material Design guidelines, with attention into details.
+- Breadcrumbs: Navigate in the filesystem with ease.
+- Root support: View and manage files with root access.
+- Archive support: View, extract and create common compressed files.
+- NAS support: View and manage files on FTP, SFTP, SMB and WebDAV servers.
+- Themes: Customizable UI colors, plus night mode with optional true black.
+- Linux-aware: Like [Nautilus](https://apps.gnome.org/Nautilus/), knows symbolic links, file permissions and SELinux context.
+- Robust: Uses Linux system calls under the hood, not yet another [`ls` parser](https://news.ycombinator.com/item?id=7994720).
+- Well-implemented: Built upon the right things, including [Java NIO2 File API](https://docs.oracle.com/javase/8/docs/api/java/nio/file/package-summary.html) and [LiveData](https://developer.android.com/topic/libraries/architecture/livedata).
 
 ## Download
 
 Signed APKs are published in [Releases](https://github.com/tonival94/MaterialFiles/releases), and can be installed and updated with [Obtainium](https://github.com/ImranR98/Obtainium) using `https://github.com/tonival94/MaterialFiles`.
 
-- **Application ID** `me.zhanghai.android.files.tonival94`: as the original README asks, the fork uses its own package name, so it installs next to the official app instead of conflicting with it.
+- **Application ID** `me.zhanghai.android.files.tonival94`: as the original author asks for builds signed with a different certificate, the fork uses its own package name, so it installs next to the official app instead of conflicting with it.
 - **No Google services**: release builds don't include Firebase (analytics and crash reporting), like the F-Droid build of the original.
 
 ## Changes from the original
@@ -47,41 +69,9 @@ Signed APKs are published in [Releases](https://github.com/tonival94/MaterialFil
 - Readable error messages, and going back when the current folder no longer exists ([#1613](https://github.com/zhanghai/MaterialFiles/issues/1613), [#1530](https://github.com/zhanghai/MaterialFiles/issues/1530))
 - Deleting images from the image viewer on SMB and WebDAV ([#1472](https://github.com/zhanghai/MaterialFiles/issues/1472), [#1538](https://github.com/zhanghai/MaterialFiles/issues/1538))
 
-The rest of this page is the original README. Its download badges point to the original app, not to this fork.
-
----
-
-# Material Files
-
-[本文中文版](README_zh-CN.md)
-
-[![Android CI status](https://github.com/zhanghai/MaterialFiles/workflows/Android%20CI/badge.svg)](https://github.com/zhanghai/MaterialFiles/actions) [![GitHub release](https://img.shields.io/github/v/release/zhanghai/MaterialFiles)](https://github.com/zhanghai/MaterialFiles/releases) [![License](https://img.shields.io/github/license/zhanghai/MaterialFiles?color=blue)](LICENSE)
-
-An open source Material Design file manager, for Android 5.0+.
-
-[<img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="240">](https://play.google.com/store/apps/details?id=me.zhanghai.android.files) [<img alt="Get it on F-Droid" src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" width="240">](https://f-droid.org/packages/me.zhanghai.android.files) [<img alt="Get it on GitHub" src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" width="240">](https://github.com/zhanghai/MaterialFiles/releases/latest/download/app-release-universal.apk)
-
-[Help translation on Transifex](https://www.transifex.com/zhanghai/MaterialFiles/) ([Search Android & GNOME translations](https://translations.zhanghai.me/), [Microsoft language resources](https://learn.microsoft.com/en-us/globalization/reference/microsoft-language-resources), [MIME type translations](https://gitlab.freedesktop.org/xdg/shared-mime-info/-/tree/master/po))
-
-## Preview
-
-<p><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="32%" />
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="32%" /> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="32%" /></p>
-
-## Features
-
-- Open source: Lightweight, clean and secure.
-- Material Design: Follows Material Design guidelines, with attention into details.
-- Breadcrumbs: Navigate in the filesystem with ease.
-- Root support: View and manage files with root access.
-- Archive support: View, extract and create common compressed files.
-- NAS support: View and manage files on FTP, SFTP, SMB and WebDAV servers.
-- Themes: Customizable UI colors, plus night mode with optional true black.
-- Linux-aware: Like [Nautilus](https://apps.gnome.org/Nautilus/), knows symbolic links, file permissions and SELinux context.
-- Robust: Uses Linux system calls under the hood, not yet another [`ls` parser](https://news.ycombinator.com/item?id=7994720).
-- Well-implemented: Built upon the right things, including [Java NIO2 File API](https://docs.oracle.com/javase/8/docs/api/java/nio/file/package-summary.html) and [LiveData](https://developer.android.com/topic/libraries/architecture/livedata).
-
 ## Why Material Files?
+
+*In the words of the original author, Hai Zhang:*
 
 Because I like Material Design, and clean Material Design.
 
@@ -107,19 +97,10 @@ Because I know people can do it right.
 
 So, it's time for yet another Android file manager.
 
-## Inclusion in custom ROMs
-
-Thank you if you choose to include Material Files in your custom ROM! However since I've received several user complaints due to improper inclusion, I'd like to offer some suggestions on including this app properly for the good of end users:
-
-- Please don't replace the AOSP [DocumentsUI](https://android.googlesource.com/platform/packages/apps/DocumentsUI/) app with this app. This app is not designed to replace DocumentsUI and can't handle a number of functionalities in DocumentsUI - in fact, it relies on DocumentsUI to do things like granting external SD card access.
-
-- Please make sure this app can be uninstalled or at least disabled. Some users may not want this app for a variety of reasons, and get very upset when they can't remove it.
-
-- Please avoid conflict with the Play/F-Droid version of this app. App stores cannot update apps signed with a different certificate, so you can either ship an APK that's signed by me (or F-Droid) so that users will be able to update it on Play/F-Droid, or fork this project and rename the package name when you need to sign the APK with a different certificate and potentially making other changes.
-
 ## License
 
     Copyright (C) 2018 Hai Zhang
+    Copyright (C) 2026 tonival94 (modifications in this fork)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
