@@ -756,4 +756,5 @@
         <item quantity="other">%1$d server importati</item>
     </plurals>
     <string name="settings_import_servers_error">Questo file non è un’esportazione di server</string>
+    <string name="trash_moved_to_trash">Spostato nel cestino</string>
 </resources>

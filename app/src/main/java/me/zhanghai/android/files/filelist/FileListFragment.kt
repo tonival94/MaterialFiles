@@ -1225,6 +1225,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     private fun confirmDeleteFiles(files: FileItemSet) {
+        // Moving to the trash can be undone, so it needs no confirmation.
+        val canMoveAllToTrash = Trash.isEnabled &&
+            files.all { !Trash.isInTrash(it.path) && Trash.canMoveToTrash(it.path) }
+        if (canMoveAllToTrash) {
+            deleteFiles(files, true)
+            showToast(R.string.trash_moved_to_trash)
+            return
+        }
         ConfirmDeleteFilesDialogFragment.show(files, this)
     }
 
@@ -1642,6 +1650,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
 
     override fun copyPath(file: FileItem) {
         copyPath(file.path)
+    }
+
+    override fun restoreFromTrash(file: FileItem) {
+        restoreFilesFromTrash(fileItemSetOf(file))
     }
 
     override fun showCreateSymbolicLinkDialog(file: FileItem) {
