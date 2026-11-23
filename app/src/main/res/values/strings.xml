@@ -857,4 +857,10 @@
     <string name="batch_rename_error_duplicate">Some new names are the same</string>
     <string name="file_create_symbolic_link_title">Create symbolic link</string>
     <string name="file_create_symbolic_link_name_format">%1$s (link)</string>
+    <string name="settings_show_directory_item_count_title">Show number of items in folders</string>
+    <string name="settings_show_directory_item_count_summary">For folders on this device</string>
+    <plurals name="file_item_directory_item_count_format">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
 </resources>
